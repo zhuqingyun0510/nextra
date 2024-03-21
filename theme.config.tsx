@@ -2,16 +2,16 @@ import React from 'react'
 import { DocsThemeConfig } from 'nextra-theme-docs'
 
 const config: DocsThemeConfig = {
-  logo: <span>信奥 Copilot</span>,
+  logo: <span>信息学奥赛 Copilot</span>,
   project: {
     link: 'www.noip.chat',
   },
   chat: {
-    link: 'https://discord.com',
+    link: 'lobe.noip.chat',
   },
-  docsRepositoryBase: 'https://github.com/shuding/nextra-docs-template',
+  docsRepositoryBase: 'https://github.com/zhuqingyun0510/nextra',
   footer: {
-    text: 'Nextra Docs Template',
+    text: 'Build from Nextra',
   },
 }
 
