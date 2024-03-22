@@ -6,7 +6,7 @@ const config: DocsThemeConfig = {
     link: 'https://github.com/zhuqingyun0510/nextra',
   },
   chat: {
-    link: 'lobe.noip.chat',
+    link: 'https://lobe.noip.chat',
   },
   docsRepositoryBase: 'https://github.com/zhuqingyun0510/nextra',
   footer: {

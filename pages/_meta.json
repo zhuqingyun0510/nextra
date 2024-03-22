@@ -1,7 +1,7 @@
 {
   "index": "Get Started",
-  "another": "Another Page",
-  "advanced": "Advanced (A Folder)",
+  "CSP_J": "CSP_J 组真题",
+  "CSP_S": "CSP_S 组真题",
   "about": {
     "title": "About",
     "type": "page"
