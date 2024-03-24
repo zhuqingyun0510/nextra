@@ -1,10 +1,10 @@
 {
-  "index": "Get Started",
+  "index": "🕮 Get Started",
   "---": {
     "type": "separator"
   },
-  "CSP_J": "CSP_J 组真题",
-  "CSP_S": "CSP_S 组真题",
+  "CSP_J": "♐ CSP_J 组真题",
+  "CSP_S": "♉ CSP_S 组真题",
   "about": {
     "title": "About",
     "type": "page"

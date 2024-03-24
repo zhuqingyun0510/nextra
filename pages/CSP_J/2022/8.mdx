@@ -1,3 +1,27 @@
 # Satori
 
 Satori (悟り) is a Japanese Buddhist term for awakening, "comprehension; understanding".
+
+## Hello MDX
+ 
+import { useState } from 'react'
+ 
+export function Counter({ children }) {
+  const [count, setCount] = useState(0)
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      {children}
+      {count}
+    </button>
+  )
+}
+ 
+{/* The **Pythagorean equation**: $a=\sqrt{b^2 + c^2}$. */}
+
+import { Tabs } from 'nextra/components'
+ 
+{/* <Tabs items={['pnpm', 'npm', 'yarn']}>
+  <Tabs.Tab>**pnpm**: Fast, disk space efficient package manager.</Tabs.Tab>
+  <Tabs.Tab>**npm** is a package manager for the JavaScript programming language.</Tabs.Tab>
+  <Tabs.Tab>**Yarn** is a software packaging system.</Tabs.Tab>
+</Tabs> */}
