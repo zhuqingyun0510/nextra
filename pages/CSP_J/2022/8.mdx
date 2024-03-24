@@ -15,13 +15,44 @@ export function Counter({ children }) {
     </button>
   )
 }
- 
-{/* The **Pythagorean equation**: $a=\sqrt{b^2 + c^2}$. */}
 
-import { Tabs } from 'nextra/components'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Tabs items={['pnpm', 'npm', 'yarn']}>
+  <Tabs.Tab> 
+  ```c++ filename="main.cpp"
+  **pnpm**: Fast, disk space efficient package manager. 
+  ```
+  </Tabs.Tab>
+
+  <Tabs.Tab>
+  # Steps Component
+A built-in component to turn a numbered list into a visual representation of
+steps.
+
+## Example
+<Steps>
+### This is the first step
+This is the first step description.
+### This is the second step
+This is the second step description.
+### This is the third step
+This is the third step description.
+</Steps>
+**npm** is a package manager for the JavaScript programming language.
+</Tabs.Tab>
+
+<Tabs.Tab>
+**Yarn** is a software packaging system.
+</Tabs.Tab>
+</Tabs>
  
-{/* <Tabs items={['pnpm', 'npm', 'yarn']}>
-  <Tabs.Tab>**pnpm**: Fast, disk space efficient package manager.</Tabs.Tab>
-  <Tabs.Tab>**npm** is a package manager for the JavaScript programming language.</Tabs.Tab>
-  <Tabs.Tab>**Yarn** is a software packaging system.</Tabs.Tab>
-</Tabs> */}
+$$\left(\LARGE{AB}\right)$$
+$$\dfrac{a}{b}$$
+$$\dbinom{n}{k}$$
+
+| left   | center | right |
+| :----- | :----: | ----: |
+| foo    |  bar   |   baz |
+| banana | apple  |  kiwi |$$
+
