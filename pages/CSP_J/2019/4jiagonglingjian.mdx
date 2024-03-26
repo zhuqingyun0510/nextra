@@ -1,0 +1,160 @@
+#### 线上OJ
+
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1985
+
+> 洛谷：https://www.luogu.com.cn/problem/P5663
+
+> AcWing：https://www.acwing.com/problem/content/description/1166/
+
+#### 题中关键句
+
+1、在“输入输出样例 2 说明的环形图”中，发现本题中**存在环**，但是**没有负环**。
+
+2、“如果 x 号工人想生产一个被加工到**第 L (L>1)阶段**的零件，则所有与 x 号工人有传送带**直接相连**的工人，都需要生产一个被加工到**第 L−1 阶段**的零件”，可以理解为是 **边权为1的无向图**
+
+#### 题目分析：
+
+1、对于“测试点 1~4，1≤n,m≤1000，q=3，**L=1**”这种情况，只有a点和1点存在直接相连边时，才会满足“编号为 a 的工人生产一个第1阶段的零件时，由1号工人提供原材料”。所以只要判断a点和1点是否存在边（edge[a][1]=1）即可。20分轻松拿到~~ 考场上来不及的可以先把基础分拿到
+
+2、对于剩余测试点，由于数量级较大，需采用求最短路的方法。由于本题是单源最短路，可采用队列优化后的 SPFA 算法。
+
+> 回忆 SPFA 算法:
+> 是基于Bellman-ford算法的队列优化。初始时将起点加入队列。每次从队列中取出一个元素，并对所有与它相邻的点进行修改,若某个相邻的点修改成功，则将其入队。直到队列为空时算法结束。
+
+
+#### 核心思想：
+
+1、本题实际为求最短路径（无向图），且边权均为1。存在环，但是没有负环。
+
+2、如果第 i 个点到第 1 个点的最短路径 dis[i] 满足 L - dis[i]= 0 + 2n，则1号提供原材料为Yes
+
+a点（第3阶段）-> b点（第2阶段）-> c点（第1阶段）-> 1点（原材料）。
+
+比如，上述a点到1点的奇数最短路径是3,则a点的阶段L为3,5,7,9....等，只要是比3大的奇数都可以。因为多出来的偶数次都可以在最后的c点和1点中循环消化。
+
+3、本题的最短路应区分：奇数最短路和偶数最短路两种情况 讨论。
+
+对于q次询问，先判断当前的L是奇数还是偶数。
+
+如果L是偶数，且L>=dis_ou[i]，则为“Yes”
+
+如果L是奇数，且L>=dis_ji[i]，则为“Yes”
+
+否则，说明比奇数最短路和偶数最短路都短，就是走不到1，则为“No”
+
+#### 题解代码：
+
+```c++ filename="解法一 SPFA"
+#include <bits/stdc++.h>
+#define N 100005
+using namespace std;
+
+int dis_ou[N], dis_ji[N]; 	// dis_ou[i]: 从第i个点到1号点的偶数最短路径; dis_ji[i]: 从第i个点到1号点的奇数最短路径 
+vector<int> edge[N]; // 记录边的信息 
+bool exist[N];		 // 记录每一个点是否存在于当前队列中。 
+
+//求每一点到1号顶点的奇数最短路径长度和偶数最短路径长度 
+void SPFA(int st)
+{
+    memset(dis_ou, 0x3f, sizeof(dis_ou)); 
+    memset(dis_ji, 0x3f, sizeof(dis_ji));
+    int u, v;
+    dis_ou[st] = 0;	// 起始点到起始点的偶数最短路径长度为0
+    queue<int> que;	// 队列保存顶点编号
+    que.push(st);
+    exist[st] = true;
+    while(que.empty() == false)
+    {
+        u = que.front();	// 出队的顶点u 
+        que.pop();
+        exist[u] = false;
+        // 此处不要枚举所有点，只需要枚举与u相邻的点即可
+        for(int i = 0; i < edge[u].size(); i++)  
+        {
+            v = edge[u][i];	// 取出每一个邻接顶点v 
+            // 因为u点和v点相连，所以u点的偶数最短距离+1就是v点的奇数最短距离；u点的奇数最短距离+1就是v点的偶数最短距离      
+            if(dis_ou[v] > dis_ji[u] + 1)
+            {
+                dis_ou[v] = dis_ji[u] + 1;
+                if(exist[v] == false)
+                {
+                    exist[v] = true;
+                    que.push(v);
+                }
+            }    
+            if(dis_ji[v] > dis_ou[u] + 1)
+            {
+                dis_ji[v] = dis_ou[u] + 1;
+                if(exist[v] == false)
+                {
+                    exist[v] = true;
+                    que.push(v);
+                }
+            }    			
+        }
+    }
+}
+
+int main()
+{
+    int n, m, q, u, v, a, L;
+    scanf("%d %d %d", &n, &m, &q);
+    for(int i = 0; i < m; ++i)
+    {
+        scanf("%d %d", &u, &v);//无向图添加边 
+        edge[u].push_back(v);
+        edge[v].push_back(u);
+    }
+    SPFA(1);	// 以1号点为起始点，进行单源最短路径搜索 
+    for(int i = 0; i < q; ++i)
+    {
+        scanf("%d %d", &a, &L);        
+        if(L % 2 == 0)  // 若L是偶数
+        {               // 且大于等于a到i的偶数最短路径，则输出Yes 
+            if(L>=dis_ou[a]) printf("Yes\n"); 
+            else printf("No\n");	// 否则输出No 
+        }
+        else            //若L是奇数 
+        {               // 且大于等于a到i的奇数最短距离，则输出Yes 
+            if(L>=dis_ji[a])  printf("Yes\n");
+            else printf("No\n");    // 否则输出No 
+        }
+    }
+    return 0;
+}
+```
+
+
+```c++ filename="解法二 混分20%"
+#include <bits/stdc++.h>
+#define ll long long
+#define MAXN 1005
+using namespace std;
+
+/*
+混分20%，只考虑测试点1~4，即L的情况。此时只需要判断a和1之间是否有边即可 
+*/ 
+int main()
+{
+    int n, m, q, u, v, a, L;	
+    cin >> n >> m >> q;
+    int edge[MAXN][MAXN];
+	
+    memset(edge, 0, sizeof(edge));
+    for(int i = 1; i <= m; i++)	
+    {
+        cin >> u >> v;
+        edge[u][v] = edge[v][u] = 1;
+    }
+	
+    while(q--)
+    {
+        cin >> a >> L;
+        if(L == 1)
+            if( edge[a][1] || edge[1][a] )	
+                cout << "Yes" << endl;
+            else cout << "No" << endl;
+    }	
+    return 0;
+}
+```
