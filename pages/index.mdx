@@ -2,34 +2,51 @@
 这里是首页
 ---
 
-# 开始学习 
 import { Callout } from 'nextra-theme-docs'
 
 <Callout type="info">
-  This is an info callout.
+湖上风来波浩渺，秋已暮，红稀香少。  
+水光山色与人亲，说不尽，无穷好。-- （宋）李清照
 </Callout>
 
-<Callout type="warning" emoji="⚠️">
-  This API will be deprecated soon.
-</Callout>
-
-<Callout type="warning" emoji="⚠️">
-  This API will be deprecated soon.
-</Callout>
-
-<Callout type="error" emoji="️🚫">
-  This is a dangerous feature that can cause everything to explode.
-</Callout>
-
-湖上风来波浩渺，秋已暮，红稀香少。
-水光山色与人亲，说不尽，无穷好。
--- （宋）李清照
-
-## 这里会有什么?
-
-有关于历年信息学奥林匹克竞赛（**CSP**, **NOIP**）的 **真题** 题解。帮助大家快速了解考试范围及题型。
+### 书籍 
 
 
-## 文档
 
-本站内容可获得于 [Github/zhuqingyun0510](https://github.com/zhuqingyun0510/nextra).
+### 刷题网站
+import { Cards, Card} from 'nextra/components'
+import { CardsIcon, OneIcon, WarningIcon } from '/components/icons'
+ 
+<Cards num={3}>
+  <Card icon={
+        <img width="130" height="28" src="http://ybt.ssoier.cn:8088/5.jpg" />
+    } title=""  href="http://ybt.ssoier.cn:8088/index.php"  />
+  <Card icon={
+        <img width="68" height="24" src="https://fecdn.luogu.com.cn/luogu/logo.png?0fdd294ff62e331d2f70e1a37ba4ee02" />
+    } title=""  href="https://www.luogu.com.cn/"  />
+  <Card icon={
+        <img width="56" height="28" src="https://alphastar.academy/wp-content/uploads/2020/12/usaco_logo.png" />
+    } title="USA CO"  href="https://usaco.org/index.php/"  />
+  <Card icon={
+        <img width="24" height="24" src="https://static.cdn.menci.xyz/libreoj-assets/logo-website.min.svg" />
+    } title="LibreOJ"  href="https://loj.ac/p" arrow />  
+  <Card icon={
+        <img width="24" height="24" src="https://res.jisuanke.com/img/upload/20181206/8dafb9782925a618e06559bb4d852ec11a84b0bc.png" />
+    } title="noi.openjudge" href="http://noi.openjudge.cn/" arrow/>
+    <Card icon={
+        <img width="28" height="28" src="http://poj.org/images/logo3.gif" />
+    } title="PKU ACM/ICPC" href="http://poj.org/problemlist" arrow/>
+</Cards>
+
+### 算法自学
+<Cards num={3}>
+  <Card href="https://www.hello-algo.com/chapter_introduction/" title="Hello 算法（很好的入门算法）" image > 
+    ![](https://www.hello-algo.com/assets/covers/chapter_introduction.jpg)
+  </Card>
+  <Card href="https://oi.wiki/" title="OI wiki(⭐️推荐)" image arrow >
+    ![](c:\Users\63726\Pictures\oiwiki.jpg)
+  </Card>
+</Cards>
+
+### 特别说明
+> 本网站旨在对竞赛真题做汇总梳理，以提升学生竞赛水平。非 **`NOI`** 官方网站。唯一官方网站请点击跳转 [**NOI全国青少年信息学奥林匹克竞赛**](http://www.noi.cn) 

@@ -6,8 +6,15 @@
   "CSP_J": "♐ CSP_J 组真题",
   "CSP_S": "♉ CSP_S 组真题",
   "about": {
-    "title": "About",
+    "title": "关于",
+    "display": "hidden",
     "type": "page"
+  },
+  "download": {
+    "title": "Dev C++",
+    "type": "page",
+    "href": "https://www.bloodshed.net/",
+    "newWindow": true
   },
   "contact": {
     "title": "Contact ↗",
