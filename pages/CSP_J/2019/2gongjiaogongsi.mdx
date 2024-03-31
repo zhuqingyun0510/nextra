@@ -1,0 +1,82 @@
+#### 线上OJ
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1984  
+> 洛谷：https://www.luogu.com.cn/problem/P5662  
+> AcWing：https://www.acwing.com/problem/content/description/1164/  
+
+#### 题中关键句
+1: 题中原文 **`如果有多张优惠票满足条件，则优先消耗获得最早的优惠`** 以及 **`我们保证出行记录是按照开始乘车的时间顺序给出的`** ，这两句很重要，告诉我们在扫描 tk[n] 数组时，只需傻傻的按照读入的先后顺序即可。不需要去分析优惠券的最优使用方法。  
+
+2: 由于n会到$$10^5$$，如果每一次搜索都从头到尾，肯定会超时。所以要找规律。题中原文 **`不会有两次乘车记录出现在同一分钟`**， 以及 **`在搭乘一次地铁后可以获得一张优惠票，有效期为 45 分钟`**。说明如果读入的是公交车票，即使前面读入的全是火车票，**最多也只有前面的45张有可能被抵消**，再往前读入的火车票肯定超过了45分钟这个限制。所以每次搜索 $$tk[n]$$前，先计算下搜索的左右边界。其中：  
+**起始左边界** = 当前 $$tk[n]$$ 的最后一个元素往前推45个（如果 $$tk[n]$$ 本身不足45个，就直接从第1个开始）；即 tk_num >= 45 ? (st = tk_num - 45 + 1): (st = 1);  
+**结束右边界** = $$[n]$$ 的最后一个元素 即可（即 ≤ tk_num）
+
+
+#### 核心思想
+1、建立一个存储火车票的结构体数组 tk[n]，如果读入是火车票，就存进去 tk[i]  
+2、如果读入是公交车票，则在火车票的 tk[n] 数组中寻找是否能被优惠，寻找的策略为：  
+2.1 当前 $$tk[i]$$ 是否已被抵扣过 ( tk[i].used == false )  
+2.2 当前读入公交车票的起始时间与 $$tk[i]$$ 的起始时间间隔是否在45分钟以内  
+      (st_time - tk[j].st_time < 45)  
+2.3 当前读入公交车票的价格是否能被 $$tk[i]$$ 的价格包住 （tk[j].price >= p）
+如果以上三个都符合，则认为 tk[i] 可以将当前读入的公交车票抵扣
+
+#### 题解代码
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Tabs items={['解法一']}>
+  <Tabs.Tab> 
+  ```c++ filename="解法一、满分" {31-40} showLineNumbers
+#include <bits/stdc++.h>
+#define MAXN 100010
+using namespace std;
+
+struct TK0		// 0表示火车，tk表示ticket 
+{
+	int price;
+	int st_time;
+	bool used; 
+};
+TK0 tk[MAXN];
+
+int main()
+{
+	int n, res = 0;	// n:数量  res:最终求解的总金额 
+	int type, p, st_time;	// t:类型	p:价格	s:起始时间 
+	int tk_num = 0; 	// 存储火车票的数量 
+	cin >> n;
+	
+	for(int i = 0; i < n; i++)
+	{
+		cin >> type >> p >> st_time;
+		if(type == 0)	// 如果是火车，就加到tk数组中 
+		{
+			tk[++tk_num] = {p, st_time, false};	// tk_num表示tk数组的元素数量 
+			res += p; 	// 火车的总金额都要算 
+		} 
+		else if(type == 1)	// 如果是公交 
+		{
+			int st, flag = 0;	// st:由于火车票和汽车票抵消的前提是不能超过45分钟，所以在火车票的tk数组中寻找搜索的左边界，右边界就是tk_num  
+			tk_num >= 45 ? (st = tk_num - 45 + 1): (st = 1);
+			for(int j = st; j <= tk_num; j++)	// 右边界就是tk_num，左边界就是右边界往前数45个  
+			{
+				if((st_time - tk[j].st_time <= 45) && (tk[j].price >= p) && (tk[j].used == false))
+				{
+					flag = 1;
+					tk[j].used = true;
+					break;
+				} 
+			}
+			if(!flag)	// 如果在最近的45个里面没找到合适的优惠卷 
+				res += p;	// 则这张票的金额要算上 
+		}
+	}
+	
+	cout << res << endl; 
+	return 0;
+}
+  ```
+
+</Tabs.Tab>
+
+</Tabs>

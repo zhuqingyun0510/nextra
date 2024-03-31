@@ -43,7 +43,10 @@ a点（第3阶段）-> b点（第2阶段）-> c点（第1阶段）-> 1点（原�
 否则，说明比奇数最短路和偶数最短路都短，就是走不到1，则为“No”
 
 #### 题解代码：
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
 
+<Tabs items={['解法一、满分', '解法二:混分']}>
+  <Tabs.Tab> 
 ```c++ filename="解法一 SPFA"
 #include <bits/stdc++.h>
 #define N 100005
@@ -123,8 +126,10 @@ int main()
     return 0;
 }
 ```
+  </Tabs.Tab>
 
 
+<Tabs.Tab>
 ```c++ filename="解法二 混分20%"
 #include <bits/stdc++.h>
 #define ll long long
@@ -158,3 +163,6 @@ int main()
     return 0;
 }
 ```
+</Tabs.Tab>
+</Tabs>
+

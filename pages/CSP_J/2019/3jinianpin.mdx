@@ -39,6 +39,11 @@
       2.3、由于dp只有一维，所以每一轮完全背包之前，要先初始化dp数组
 
 #### 题解代码
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Tabs items={['解法一、满分', '解法二、满分', '解法三、混分', '解法四、混分']}>
+  <Tabs.Tab> 
 ```cpp filename="解法一、标准二维dp方程"
 #include <bits/stdc++.h>
 using namespace std;
@@ -79,8 +84,8 @@ int main()
     return 0;
 }
 ```
-
-
+  </Tabs.Tab>
+    <Tabs.Tab> 
 ```cpp  filename="解法二、压缩一维dp方程"
 #include <bits/stdc++.h>
 using namespace std;
@@ -119,9 +124,9 @@ int main()
     return 0;
 }
 ```
-
-
-```cpp filename="解法三、（混分10%，即只考虑T=1）。考场上如果实在想不出解题方法，可以看下是否能通过特定区间混分"
+</Tabs.Tab>
+  <Tabs.Tab>
+ ```cpp filename="解法三、（混分10%，即只考虑T=1）。考场上如果实在想不出解题方法，可以看下是否能通过特定区间混分"
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -141,8 +146,9 @@ int main()
     return 0;
 }
 ```
+</Tabs.Tab>
 
-
+<Tabs.Tab>
 ```cpp filename="解法四、（混分25%，即只考虑T=1和T=2.这种解法不看也罢，因为写出这种，只要再加一层循环就是满分了）"
 #include <bits/stdc++.h>
 using namespace std;
@@ -187,3 +193,6 @@ int main()
     return 0;
 }
 ```
+
+</Tabs.Tab>
+</Tabs>
