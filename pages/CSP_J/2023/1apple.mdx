@@ -8,7 +8,11 @@
 2. 第二问：编号为n的苹果（即：最后一个苹果）在第几天被拿走
 设每一天有 n 个苹果，当 n mod 3 == 1 时即可，且第一次出现。
 
-**向上取整**的代码 $$\dfrac{(m+ (n-1))}{n}$$ ，所以每天最少拿走多少个为 $$\dfrac{m+2}{3}$$
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="default">
+**向上取整** 的代码 $$\dfrac{(m+ (n-1))}{n}$$ ，所以每天最少拿走多少个为 $$\dfrac{m+2}{3}$$
+</Callout>
 
 #### 核心思想：
 由于从编号 1开始，每隔 2个取走1个，所以实际是每3个取走1个...   

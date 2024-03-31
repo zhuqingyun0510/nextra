@@ -1,1 +1,71 @@
-#### 线上OJ:
+#### 线上OJ：
+> http://ybt.ssoier.cn:8088/problem_show.php?pid=2101
+
+#### 核心思想：
+1、设置 pair 对数组 g[n]，记载每一条通路（从哪儿到哪儿）及边权（本题中为开放时间）。
+其中 g[x][i] 表示 从第 g[x][i].first →x 是一条通路 (并且这是第 i 条通路)，边权（开放时间）记载为  g[x][i].second
+
+2、通过 dis[x][b] 记载到达点 x，且花费时间 %k 的余数为 b 的最少时间。（此处需要进行 %k）
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, m, k;
+vector<pair<int, int>> g[10005];	// g[x][i] 表示 从第 g[x][i].first →x 是一条通路 (并且这是第 i 条通路)，且边权（开放时间）为  g[x][i].second
+int dis[10010][110];	// dis[x][b] 表示到达点 x，且花费时间 %k的余数为 b 的最少时间 
+
+bool bfs(int mid)		// 采用二分法，对不同的离开公园时间 mid*k 进行反向 BFS 搜索 
+{
+    memset(dis, -1, sizeof(dis)); // 全部初始成 -1 
+    queue<pair<int, int>> q;
+    dis[n][0] = mid * k;	
+    q.push({n, 0});		// bfs的初始状态从点 n 开始 
+    while (!q.empty()) 
+	{
+        pair<int, int> u = q.front();	// 取出队首的 pair对 <first=当前点，second=到达当前点的时间%k> 
+        int x = u.first; 	// u.first 表示当前点 
+        int b = u.second;	// u.second 表示到达当前点的时间%k 
+        q.pop();
+        
+        if (dis[x][b] == 0) continue;
+        
+        for (int i = 0; i < g[x].size(); i++) 	// g[x]表示能到达 x点的 pair对数组。举例，有2个点能到达 x，则 g[x].size()==2
+		{
+            pair<int, int> pr = g[x][i];		// 取出能到达 x点的第 i个 pair 
+            if (dis[x][b]-1 < pr.second) continue;	// 题中每条边的通过时间为 1，所以据此判断上一个 dis的时间  
+            int y = pr.first, p = (b+k-1)%k;		// 
+            if (dis[y][p]!=-1) continue;
+            dis[y][p] = dis[x][b] - 1;
+            q.push({y, p});
+        }
+    }
+    if (dis[1][0] == -1) return false;	// 如果在非负整数时间回到点 1 ，则返回true。 否则返回flase，说明无法完成 
+    else return true;
+}
+int main()
+{
+    cin >> n >> m >> k;
+    for (int i = 1; i <= m; i++) 
+	{
+        int u, v, a;
+        cin >> u >> v >> a;
+        g[v].push_back({u, a});	// g[v]数组表示能到达当前 v节点的 {u, a}数组 
+    }
+    
+    int l = 0, r = 2000000 / k, ans=-1;	
+    while (l<r) 				// 利用二分法查找最后出口的时间 
+	{
+        int mid = (l+r)/2;
+        if (bfs(mid)) 
+		{
+            ans = mid * k;
+            r = mid;
+        }
+        else l = mid+1;
+    }
+    
+    cout << ans << endl;
+    return 0;
+}
+```

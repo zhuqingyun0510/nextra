@@ -6,7 +6,12 @@
 **贪心+反悔**  
 从左到右考虑，如果行驶到某个加油站，缺油的时候，从 **`之前经过的最便宜的加油站加油`** 即可。  
 核心：与第一道题 apple 的考点相同。  
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="info">
 向上取整的代码 $$\dfrac{(m+ (n-1))}{n}$$ ，所以至少要加多少升油表示为 $$\dfrac{(s+d-1)}{d}$$
+</Callout>
 
 #### 题解代码：
 ```cpp showLineNumbers {24, 27, 28}

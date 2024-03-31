@@ -1,0 +1,63 @@
+#### 线上OJ：
+> https://www.luogu.com.cn/problem/P8814  
+https://www.acwing.com/problem/content/4732/
+
+#### 核心思想：
+对本题先进行数学公式推导  
+已知 $$ ed=(p-1)(q-1) + 1 = pq - p - q + 2 $$  
+$$ \because n = pq,$$   
+$$ \therefore n = ed - p - q + 2 $$  
+$$ \therefore p + q = ed - n + 2  $$  
+由于 $$ n, e, d $$ 是已知的,  令 $$ p + q = m $$，可得
+$$
+\left\{
+\begin{array}{l}
+\text{p + q = m  ①} \\
+\text{pq = n  ②}
+\end{array}
+\right.
+$$
+由 ① 式得，$$ q = m - p $$,   
+代入 ② 式得 $$ p(m - p) = n $$，即 $$ p^2 - mp + n = 0 $$  
+利用一元二次方程求解公式可得，  
+
+$$ p(或q) = \frac{m ± \sqrt{m^2 - 4n}}{2} $$
+
+由于题中说 $$ p,q $$ 为正整数，所以 $$ m^2 - 4n $$ 必须为完全平方数，  
+我们令 $$ r = \sqrt{m^2 - 4n} $$，如果 $$ r^2 = m^2 - 4n $$，则说明 $$ r $$ 为整数，  
+此时 $$ p=\frac{m-r}{2}, q=\frac{m+r}{2} $$，输出即可，否则输出NO
+
+
+#### 题解代码：
+```cpp filename="数学推导"
+#include <bits/stdc++.h>
+#define ll long long 
+
+using namespace std;
+
+/*
+n = p*q    m = n - e*d + 2 
+q = (m+sqrt(m*m-4*n))/2    p = (m-sqrt(m*m-4*n))/2
+*/
+int k;  //定义正整数k
+ll n, d, e;  //定义n、d、e
+int main()
+{
+    cin >> k;  //输入k
+    while (k--) 
+	{   //循环 k次
+        cin >> n >> d >> e;  //输入n、d、e
+        ll m = n - e*d + 2;  //根据数学推导，计算m
+        ll r = sqrt(m*m - 4*n);  //根据数学推导，计算m*m-4*n的平方根
+        if (r*r == (m*m - 4*n))
+		{ 	//因为p和q是正整数，所以这里判断是否为完全平方根
+            cout << (m-r)/2 << " " << (m+r)/2 << endl;  //计算p和q
+        } 
+		else 
+		{
+            cout << "NO" << endl;  //否则输出NO
+        }
+    }
+    return 0;
+}
+```

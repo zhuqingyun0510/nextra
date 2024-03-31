@@ -1,0 +1,83 @@
+#### 线上OJ：
+> https://www.jisuanke.com/problem/T3730  
+https://www.luogu.com.cn/problem/P8813
+
+#### 核心思想：
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="info">
+1、对 a=1 和 b=1 进行特判  
+2、为了防止超过1e9, 故采用两遍同除一个 a 的方法
+</Callout>
+
+#### 题解代码：
+<Tabs items={['解法一、两边同除一个a', '解法二、死算']}>
+  <Tabs.Tab> 
+```cpp showLineNumbers {20}
+#include <bits/stdc++.h>
+using namespace std;
+int a, b;  //定义a和b
+int main()
+{
+    cin >> a >> b;  //输入a和b
+    if (a==1) 
+	{  //对a=1进行特判
+        cout << 1 << endl;  //如果a=1，无论多少次乘方，结果仍然为1
+        return 0;  //退出程序
+    }
+    if (b==1) 
+	{  //对b=1进行特判
+        cout << a << endl;  //如果b=1，无论多少次乘方，结果为a
+        return 0;  //退出程序
+    }
+    int ans = 1;  //定义ans
+    for (int i=1; i<=b; i++) 
+	{  //循环b次
+        if (ans > 1e9 / a) 
+		{  //不等式移向判断，解决等式两边超过1e9的情况
+            ans = -1;  //如果输出结果超过10^9，结果为-1
+            break;  //退出循环
+        }
+        else ans *= a;  //否则计算得到结果
+    }
+    cout << ans << endl;  //输出a^b的值
+    return 0;
+}
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```cpp showLineNumbers filename="这道题是送分，死算也能满分"
+#include <bits/stdc++.h>
+#define ll long long 
+using namespace std;
+int a, b;  //定义a和b
+int main()
+{
+    cin >> a >> b;  //输入a和b
+    if (a==1) 
+	{  //对a=1进行特判
+        cout << 1 << endl;  //如果a=1，无论多少次乘方，结果仍然为1
+        return 0;  //退出程序
+    }
+    if (b==1) 
+	{  //对b=1进行特判
+        cout << a << endl;  //如果b=1，无论多少次乘方，结果为a
+        return 0;  //退出程序
+    }
+    ll ans = 1;  //定义ans
+    for (int i=1; i<=b; i++) 
+	{  //循环b
+		ans *= a;
+        if (ans > 1e9) 
+		{  
+            ans = -1;  	//如果输出结果超过10^9，结果为-1
+            break;  	//退出循环
+        }
+    }
+    cout << ans << endl;  //输出a^b的值
+    return 0;
+}
+```
+  </Tabs.Tab>
+</Tabs>
