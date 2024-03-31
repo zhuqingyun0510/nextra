@@ -1,0 +1,146 @@
+#### 线上OJ：
+> https://www.jisuanke.com/problem/T3919  
+https://www.luogu.com.cn/problem/P9750
+
+#### 题目分析  
+对于学过一元二次方程的同学来说，这道题理解起来不会太难。只需要按照题意模拟即可。
+
+1、当 $\Delta < 0$ 时，方程无实数解，直接输出 "NO"
+
+2、当 $\Delta = 0$ 时，方程有且只有一个实数解，为 $$\frac{-b}{2a}$$, 需 **先约分**，再输出结果
+
+     2.1 约分方法：先求出分子和分母的最大公约数 d（$d = gcd(\left | b \right |, \left | 2a \right |)$，然后分子分母同除 d（$\frac{(-b)\div d}{2a\div d}$) 即可。
+
+     2.2 输出前要检查 **`分母不能为负`** 。如果分母为负，则需调整分子分母的符号，再输出。
+
+3、当 $\Delta > 0$ 时，需要分类讨论
+
+     3.1  如果$\sqrt{\Delta }= r$ 时（r 为整数），则方程的较大解为
+
+     $\left\{\begin{matrix} \frac{-b+r}{2a},a>0\\ \frac{-b-r}{2a},a<0 \end{matrix}\right.$
+
+     3.2 如果$\sqrt{\Delta }= r\sqrt{t}$ 时（r,t 均为整数，t不为完全平方数），则方程的较大解为
+
+     $\left\{\begin{matrix} \frac{-b}{2a}+\frac{r\sqrt{t}}{2a},a>0\\ \frac{-b}{2a}-\frac{r\sqrt{t}}{2a},a<0 \end{matrix}\right.$
+
+注1：题中要求 " `如果方程有实数解，则按要求的格式 **输出** 两个实数解中的 **较大者**` "，故只需要输出较大值一个。
+
+注2：输出之前同样需要检查 **分母不能为负**。如果分母为负，则需调整分子分母的符号，再输出。
+
+4、关于 $r$ 的求法
+
+      从$\sqrt{\Delta }$ 的 **向下取整的整数** 开始，暴力枚举第一个使 (delta % (r*r)) == 0 的数即可  
+> 举例：delta=150，$\sqrt{150}$ = 12.2474，向下取整是12。  
+从 12 向下递减，5 是第一个满足 150%25==0，所以r=5 。  
+且 t= delta/(r*r)=6，即 $\sqrt{150}=5\sqrt{6}$
+
+#### 核心要点：
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="info">
+1.  约分的函数单独写，通过地址和指针来传递。约分就是分子分母同除最大公约数。
+2.  由于输出格式要求，分母不能为负值。如果分母为负，要分子分母都变号。
+</Callout>
+
+#### 题解代码：
+
+<Tabs items={['解法', '约分函数']}>
+  <Tabs.Tab> 
+```cpp showLineNumbers {5,6,13-15}
+#include<bits/stdc++.h>
+#define ll long long
+using namespace std;
+
+ll gcd(ll a, ll b) {return b ? gcd(b, a%b) : a;}
+ll lcm(ll a, ll b) {return a / gcd(a, b)*b;}
+
+ll T, M, a, b, c, delta;
+
+// 化简p/q，即约分。约分的原理是：分子分母同除以最大公约数 
+void yuefen(ll *p, ll *q)
+{
+	ll pq = gcd(abs(*q), abs(*p));	// 求出 p和 q的最大公约数 
+	*p /= pq, *q /= pq;				// 分子分母同除最大公约数，即化简 p/q 
+	if(*q < 0) *q = -*q, *p = -*p;	// 保证分母＞0 	
+	return;
+} 
+
+int main()
+{
+	cin >> T >> M; 
+	while(T--)
+	{
+		cin >> a >> b >> c;
+		delta = b*b - 4*a*c;
+		if(delta < 0)
+		{
+			cout << "NO" << endl;
+		}
+		else if(delta == 0)		//  只有一个解，x = -b/2a 
+		{
+			ll p = -b, q = 2*a;
+			yuefen(&p, &q);
+			if(q == 1) cout << p << endl; // 如果约分后分母为 1，则分子即为解，直接输出即可 
+			else cout << p << "/" << q << endl; //printf("%lld/%lld\n",p,q);	// 否则输出 p/q 
+		}
+		else 	// 有两个解，但更号正好开尽（比如 3=sqrt(9)）。按题目要求，输出最大解即可
+		{
+			ll p = -b, q = 2*a;
+			ll sq = (ll)sqrt(delta); 	// 对 delta开更号，并保留整数部分 
+			if(sq * sq == delta)			// 如果 sq 正好是平方根 ，则解为 (p + sq)/q 和  (p - sq)/q
+			{
+				if(q > 0) p += sq;		// 因为只输出最大的解，所以当分母＞0时，分子 +sq 为较大值 
+				else p -= sq;			// 所以当分母＜0时，分子 -sq 为较大值 
+				yuefen(&p, &q);
+				if(q == 1) cout << p << endl; 	// 如果约分后分母为 1，则分子即为解，直接输出即可
+				else cout << p << "/" << q << endl; //printf("%lld/%lld\n",p,q);	// 否则输出 p/q
+			}
+			else	// 更号开不尽，则要注意输出格式，举例 3/2+sqrt(5)/2
+			{
+				yuefen(&p, &q);			// 先处理 -b/2a+ 
+				if(p != 0)						// 先输出 -b/2a+
+				{
+					if(q == 1) cout << p << "+"; // 如果约分后分母为 1，则分子即为解，直接输出即可
+					else cout << p << "/" << q << "+"; // 否则输出 p/q+
+				}
+				// 再处理 + 后面的内容 
+				q = abs(2*a);		// 由于输出大值，为了简化处理，+后面的分子分母都当成是正的即可 
+				ll t = 0;
+				for(int r = sq; r >= 1; r--)	// 从sq开始向下穷举 
+				{
+					if( (delta % (r*r)) == 0)	// 举例：delta=150，sq=12。从12向下递减，5是第一个满足 150%25==0，所以r=5 
+					{
+						p = r;					// sqrt(150) = 5 * sqrt(6)   即 r=5, t=6 
+						t = delta/(r*r);
+						break;
+					}
+				}					
+				yuefen(&p, &q);
+				if(p == q) cout << "sqrt(" << t << ")" << endl; //printf("sqrt(%lld)\n",t);	// 如果分子分母相等，则只输出 sqrt(t)即可 
+				else if(q == 1) cout << p << "*sqrt(" << t << ")" << endl; // printf("%lld*sqrt(%lld)\n",p,t);
+				else if(p == 1) cout << "sqrt(" << t << ")/" << q << endl; // printf("sqrt(%lld)/%lld\n",t,q);
+				else cout << p << "*sqrt(" << t << ")/" << q << endl; // printf("%lld*sqrt(%lld)/%lld\n",p,t,q);
+			}
+		}
+	}
+	return 0;
+}
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```cpp showLineNumbers
+ll gcd(ll a, ll b) {return b ? gcd(b, a%b) : a;}
+ll lcm(ll a, ll b) {return a / gcd(a, b)*b;}
+
+void yuefen(ll *p, ll *q)
+{
+	ll pq = gcd(abs(*q), abs(*p));	// 求出 p和 q的最大公约数 
+	*p /= pq, *q /= pq;				// 分子分母同除最大公约数，即化简 p/q 
+	if(*q < 0) *q = -*q, *p = -*p;	// 保证分母＞0 
+	
+	return;
+} 
+```
+  </Tabs.Tab>
+</Tabs>
+

@@ -1,0 +1,47 @@
+#### 线上OJ：
+> https://www.jisuanke.com/problem/T3918  
+> https://www.luogu.com.cn/problem/P9749
+
+#### 核心思想：
+**贪心+反悔**  
+从左到右考虑，如果行驶到某个加油站，缺油的时候，从 **`之前经过的最便宜的加油站加油`** 即可。  
+核心：与第一道题 apple 的考点相同。  
+向上取整的代码 $$\dfrac{(m+ (n-1))}{n}$$ ，所以至少要加多少升油表示为 $$\dfrac{(s+d-1)}{d}$$
+
+#### 题解代码：
+```cpp showLineNumbers {24, 27, 28}
+#include <bits/stdc++.h>
+#define ll long long
+
+using namespace std;
+
+const int N = 1e5 + 10;
+
+int v[N], a[N];
+int n, d;
+int main() 
+{
+    cin >> n >> d;
+
+    for (int i = 1; i < n; i++)	
+        cin >> v[i];		// 当前加油站到下一个加油站的距离 
+
+    int mi = INT_MAX;
+    ll ans = 0, s = 0;
+
+    for (int i = 1; i < n; i++) 
+        {
+            cin >> a[i];	// 当前加油站的油价 
+            s += v[i];		// 当前加油站到下一个加油站要走的距离（注意，有可能上一轮会多走一段距离） 
+            mi = min(mi, a[i]);	// 如果当前加油站油价低，则用当前加油站的油价；否则，用之前的最低油价 
+            if (s > 0) 		// 如果此时 s += v[i] 后为正，说明此时需要计算加油；如果为负，则可以不计算，与因为之前多走了 
+            {
+                ans += (s + d - 1) / d * mi;// (s + d-1)/d 表示至少要加多少升油才能跑到下一个加油站。由数学归纳法得， (s + d-1)/d 是s/d的向上取整 
+                s -= (s + d - 1) / d * d;	// 表示这一轮跑完后，下一轮可以少跑的距离。 
+            }
+        }
+
+    cout << ans;
+    return 0;
+}
+```
