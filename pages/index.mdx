@@ -2,7 +2,7 @@
 这里是首页
 ---
 
-import { Callout } from 'nextra-theme-docs'
+import { Bleed, Callout, Tabs, Steps} from 'nextra-theme-docs'
 
 <Callout type="info">
 湖上风来波浩渺，秋已暮，红稀香少。  
@@ -11,7 +11,54 @@ import { Callout } from 'nextra-theme-docs'
 
 ### 书籍 
 
-
+<Tabs items={['推荐必读', '预赛', '复赛', '进阶']}>
+  <Tabs.Tab> 
+    <Cards num={3}>
+      <Card href="" title="信奥大辞典（⭐️重磅推荐）" image > 
+        ![](/image/dcd.png)
+      </Card>
+    </Cards>
+  </Tabs.Tab>
+  <Tabs.Tab>
+      <Cards num={3}>
+      <Card href="" title="信息学奥赛一本通（初赛真题解析）" image > 
+        ![](/image/ybt1.jpg)
+      </Card>
+      <Card href="" title="信息学奥赛一本通（初赛篇）" image > 
+        ![](/image/ybt2.jpg)
+      </Card>
+    </Cards>
+  </Tabs.Tab>
+  <Tabs.Tab>
+      <Cards num={3}>
+      <Card href="" title="信息学奥赛一本通（⭐️推荐）" image > 
+        ![](/image/ybt3.jpg)
+      </Card>
+      <Card href="" title="信息学奥赛一本通（训练指导）" image > 
+        ![](/image/ybt4.jpg)
+      </Card>
+      <Card href="" title="信息学奥赛一本通（提高篇）" image > 
+        ![](/image/ybt5.jpg)
+      </Card>
+    </Cards>
+  </Tabs.Tab>
+    <Tabs.Tab>
+      <Cards num={3}>
+      <Card href="" title="算法竞赛（入门到进阶）" image > 
+        ![](/image/sfjs.jpg)
+      </Card>
+      <Card href="" title="算法竞赛进阶指南" image > 
+        ![](/image/sfjj.jpg)
+      </Card>
+      <Card href="" title="算法导论（原版）" image > 
+        ![](/image/sfdl.jpg)
+      </Card>
+      <Card href="" title="离散数学（第4版）" image > 
+        ![](/image/lssx.jpg)
+      </Card>
+    </Cards>
+  </Tabs.Tab>
+</Tabs>
 
 ### 刷题网站
 import { Cards, Card} from 'nextra/components'
