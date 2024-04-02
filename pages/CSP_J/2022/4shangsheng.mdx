@@ -1,0 +1,87 @@
+#### 线上OJ：  
+> https://www.jisuanke.com/problem/T3733  
+https://www.luogu.com.cn/problem/P8816
+
+#### 核心思想：
+思考：**`如果这道题是 k=0`** ，且不考虑y轴数值，只考虑x轴数值，则问题变成了：`从 n 个x轴数值中选择若干个点，使得横坐标不减，且相邻点之间距离为 1，求最大点数` 。这就变成了 **`一维数组的最长上升子序列`**  
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="default">
+$$dp[i] = max(dp[i],  dp[j] + 1)$$ ： 前i个点，形成的最长上升子序列长度  
+</Callout>
+
+现在题目中从一维变成了二维，即增加了y轴，所以在判断时除了 x 不减，还要考虑 y 也不减（否则跳过该点即可）。另外，给了 k 个自由点，所以 $dp$ 应从一维变成二维。  
+定义 $dp[i][p]$ : 前 i个点，且已经插入了 p个自由点后形成的最长上升子序列长度。  
+> 举例，若输入的 k = 4  
+若 $dp[5][2] = 3$ ，表示前 5个点在使用了 **2** 个插入点后的最长上升子序列长度为 3（如下图 点1，插1，插2）， `之后最多还有 (4-2)=2个自由点可以使用`  
+若 $dp[5][3] = 5$，表示前 5个点在使用了 **3** 个插入点后的最长上升子序列长度为 5（如下图 点1，插1，插2，插3，点5），`之后最多还有 (4-3)=1个自由点可以使用`  
+<Callout type="default">
+$dp[i][p] = max(dp[i][p], dp[j][p-d]+d+1)$   ：为本题的二维最长上升子序列 
+</Callout>
+
+
+{/* ![样例图](/image/202204.png) */}
+import Image from 'next/image'
+ 
+<Image src="/image/202204.png" alt="样例图" width={500} height={500} />
+
+##### 背景知识
+> **曼哈顿距离（Manhattan Distance）**：  
+$d(i, j) = |x_i - x_j| + |y_i - y_j|$
+
+#### 题解代码：
+```cpp showLineNumbers
+#include <bits/stdc++.h>
+using namespace std;
+
+int i, j, p, n, k;
+int dp[510][110]; 	// dp[i][p]: 前 i个点，已经插入了 p个自由点后的最长上升子序列。
+					// 举例，若输入的 k = 7
+					// 若 dp[5][2] = 4，表示前 5个点在使用了2个插入点后的最长上升子序列长度为 4，之后最多还有 (7-2)=5个自由点可以使用
+					// 若 dp[5][3] = 6，表示前 5个点在使用了3个插入点后的最长上升子序列长度为 6，之后最多还有 (7-3)=4个自由点可以使用
+pair<int,int> a[505];	
+
+/*
+核心思想：先把坐标按照 x轴进行排序 
+*/ 
+int main()
+{
+	cin >> n >> k;
+	for(i = 1; i <= n; i++)	
+		cin >> a[i].first >> a[i].second;
+		
+	sort(a+1, a+1+n);	// 从 a[1]开始，对连续 n个 a进行排序（因为a是pair，所以会根据 a[i].first进行默认升序排序） 
+	
+	for(i = 1; i <= n; i++)
+		for(p = 0; p <= k; p++) 
+			dp[i][p] = p + 1; 	// dp[i][p]初始化: 只要在第i个点后面插入p个连续的点就是最小的值，所以初始值为 p+1 
+	
+	// 一维的最长上升子序列是 dp[i] = max(dp[i], dp[j]+1)   j∈[1, i-1] 
+	// 本题是二维最长上升子序列 dp[i][p] = max(dp[i][p], dp[j][p-d]+d+1)  
+	for(i = 2; i <= n; i++)
+	{
+		for(j = i-1; j >= 1; j--) // j∈[1, i-1]，即对 i前面的每个点进行枚举 
+		{
+			if(a[i].second >= a[j].second)//	continue;	// 如果不满足单调不减，则跳过 
+			{			
+				// 举例：(0,0) →(1,1) 可以插入1个点 (0,1) 或者 (1,0)。即可插入点的数量为 曼哈顿距离-1 
+				// 曼哈顿距离（Manhattan Distance） d(i,j)=|xi-xj|+|yi-yj|
+				int d = a[i].first - a[j].first + a[i].second - a[j].second - 1;
+				
+				// 因为共有 k 个自由点可以插入，如果 j点和 i点之间插入 d个点即可完成曼哈顿距离，则在 j点时已使用的点不能超过 k-d ，否则到 i点时就不够 d个点 
+				// 所以，只要在 dp[j][0] ~ dp[j][k-d] 中挑一个最大的值，再加上插入的 d个点，再 +1（第 i个点自己），即为 dp[i][p] 
+				for(p = d; p <= k; p++) 	
+					dp[i][p] = max(dp[i][p], dp[j][p-d] + d + 1);
+			}
+		}
+	}
+	
+	int ans = 0;
+	for(i = 1; i <= n; i++)		
+		ans = max(ans, dp[i][k]);
+		
+	cout << ans;
+	return 0;
+}  
+```
