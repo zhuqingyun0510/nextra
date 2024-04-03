@@ -1,0 +1,56 @@
+#### 线上OJ：
+> 洛谷：https://www.luogu.com.cn/problem/P7072  
+acwing：https://www.acwing.com/problem/content/2770/  
+一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=2005
+
+#### 核心思想：
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="default">
+本题考的是桶排序（计数排序）的思想
+</Callout>
+
+对所有的分数设置一个 **统计数组 score[]**，**存储每个分数对应的人数**，在输入时直接 ++。  
+由于本题的数据范围：$$a_i ≤ 600$$，比较小。所以可以用桶排序（也叫计数排序）  
+首先，我们将 $$1 - i$$ 的每个成绩的个数存入统计数组 **score[]** 中，然后算出本次获奖的人数 $$max(1,i∗w/100)$$ ，  
+然后**从 600----0（注意！是非负整数！）扫一遍**，  
+`当人数减去这个成绩的人数 ≤ 0 时`，就记录当前枚举的人数个数，然后退出循环，否则减去这个成绩的人数。  
+注1：题中已注明选手成绩为非负整数，所以可用 int  
+注2：由于要输出 10^5 数量级个的数据，所以 `不能使用cin和cout，只能使用scanf与printf`。
+
+#### 题解代码：
+```cpp showLineNumbers
+#include<bits/stdc++.h>
+using namespace std;
+
+/*
+核心思想：本题考的是桶排序（计数排序）
+对所有的分数设置一个统计数组 score[]，存储每个分数对应的人数，在输入时直接 ++
+注：题中已注明选手成绩为非负整数，所以可用 int 
+*/
+int main()
+{
+	int n, w, x, p;
+	int score[610]={0};		// score[i] 表示 i分对应的人数。举例：score[500] 表示拿500分的人数。均初始化为 0  
+	 
+	scanf("%d %d", &n, &w);	//  n：人数   w：百分比
+	
+	for(int i = 1; i <= n; i++)	// 每次输入时，实时更新 
+	{
+		scanf("%d", &x);	// 输入分数 
+		score[x]++;				// 分数x的个数 +1 
+        p = max(1, (i*w)/100 );	// 当前第i轮的可获奖人数 
+        int j = 600; 	// 从600分开始数人数，当人数累计超过 p 时跳出循环，此时的 j就是分数线
+		while(j >= 0)
+		{
+			p -= score[j];	// 从高分往低分扣除 score[j] 的获奖人数 
+			if(p <= 0)  	// 如果扣除 score[j] 后人数正好为 0 或者已经为负数，则 j就是分数线，可跳出。 
+				break;				
+			j--;			// 如果没跳出循环，则j--继续判断 
+		}	
+        printf("%d ", j);
+	}
+	return 0;
+}
+```
