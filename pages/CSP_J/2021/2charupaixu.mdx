@@ -1,0 +1,81 @@
+#### 线上OJ：
+>  洛谷：https://www.luogu.com.cn/problem/P7910  
+acwing：https://www.acwing.com/problem/content/4090/  
+一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=2075  
+
+#### 核心思想：  
+1、定义结构体，a.val 存储值，a.id 存储 排序前在数组中的下标  
+2、建立索引数组 ind[]。 ind[j]=i 表示在排序前数组中下标为 j 的节点，在排序后下标为 i   
+由于题中的 **第二种查询操作不改变数组** ，也 **不需要重新排序** ，所以只要 **`在每执行一次第一种操作后重新排序一次，并在排序后重新更新索引数组 ind[] `** 即可  
+`注意：第42行 sort(a+1, a+n+1, cmp);	是被注释的。如果启用这一行取代下面的手写，就会右30%测试点超时。`
+
+#### 题解代码：
+```cpp showLineNumbers {42-57}
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, Q;
+int ind[8010];		// 建立索引数组ind[]。 ind[j]=i 表示在排序前数组中下标为 j的，在排序后下标为 i 
+					// 所以对于本题中的第二种查询操作，直接输出 ind[x] 即可 
+
+struct Node 
+{
+    int val, id;	// 定义结构体，val存储值，id存储排序前在数组中的下标 
+};
+Node a[8010]; 		// 因为题中 n <=8000, 所以定义 8010 
+
+// 重定义 sort的 cmp 函数 
+bool cmp(Node x, Node y) 
+{
+    if (x.val != y.val)  return x.val < y.val;	// 如果 x.val < y.val ，则返回true 
+    return x.id < y.id;		// 如果 x.val == y.val，则 比较 id下标 
+}
+ 
+int main()
+{
+    cin >> n >> Q;
+    for (int i = 1; i <= n; i++) 	// 注意，题中是从 1~n 
+	{
+        cin >> a[i].val;	// 初始化 a的数值 
+        a[i].id = i;		// 初始化 a的排序前的下标 
+    }
+    sort(a+1, a+n+1, cmp);	// 使用 cmp方法对 a[n] 进行重新排序，这个排序对结构体中的 val 和 id没有影响 
+	 
+    for (int i = 1; i <= n; i++)  ind[ a[i].id ] = i;	// 刷新索引数组。ind[j]=i 表示在排序前数组中下标为 j的，在排序后下标为 i 
+    
+    while (Q--) 
+	{
+        int op, x, v;
+        cin >> op;
+        if (op == 1) 
+		{
+            cin >> x >> v;
+            int t = ind[x];		// x为排序前的索引，t=ind[x]即为排序后的索引 
+            a[t].val = v;		// 找到该节点，并修改对应的 val 
+    //        sort(a+1, a+n+1, cmp);	// 重新排序 
+            for (int i=t; i>=2; i--) 	// 对 t的左半边进行重新排序 
+			{
+                if (cmp(a[i], a[i-1])) 
+				{
+                    swap(a[i], a[i-1]);
+                }
+            }
+            for (int i=t; i<=n-1; i++) 	// 对 t的右半边进行重新排序
+			{
+                if (cmp(a[i+1], a[i])) 
+				{
+                    swap(a[i+1], a[i]);
+                }
+            }
+            for (int i = 1; i <= n; i++)  ind[ a[i].id ] = i;  // 刷新索引数组。
+ 
+        } 
+		else 
+		{
+            cin >> x;					// 对于操作 2 
+            cout << ind[x] << endl;		// 直接输出 ind[x] 即可
+        }
+    }
+    return 0;
+}
+```

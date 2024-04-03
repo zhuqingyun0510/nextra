@@ -1,0 +1,251 @@
+#### 线上OJ：  
+> 洛谷：https://www.luogu.com.cn/problem/P7911  
+acwing：https://www.acwing.com/problem/content/4091/  
+一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=2076  
+
+#### 核心思想：
+本题难度在于输入 ip地址的合法性判断。也就是 **`字符串的合法性判断`** 。  
+从题意可知，判断规则为 （举例  192.168.0.1:8080,实际上，192.168.0.1是IP地址，8080是端口号）   
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="info">
+`判断规则1`    有 3个 . 一个 :   且3个 . 都在 : 的前面 。   
+`判断规则2`    冒号 : 不在字符串的最后  
+`判断规则3`    可以把 192.168.0.1:8080 看成 5个区域，前四个区域的规则一样，第五个区域的规则略有不同
+     |  192. |   168. |   0.  |  1:   |   8080 |
+     | -     |  -     |   -   |  -    |   -    |
+     | 区域 1 | 区域 2 | 区域 3| 区域 4 | 区域 5 |  
+
+   区域 1 ~ 区域4  
+   **判断规则 3.1** ：
+   不能是 . 开头，不能是 :开头，不能有两个连续的前导 0； 数字不能超过255  
+   
+   区域 5  
+   **判断规则 3.2** ：
+   不能是 . 开头，不能是 :开头，不能有两个连续的前导 0； 数字不能超过65535
+</Callout>
+
+
+注：解法1 和 解法2的区别，仅在于 查找方法不同。第一种方法是for循环查找，时间复杂度 O(n)。第二种方法是map方法查找。因为map方法是红黑树，时间复杂度为 O(logn)
+
+#### 背景知识
+<Callout type="default">  
+IP地址是一个32位的二进制数，通常被分割为4个“8位二进制数”（也就是4个字节）。  
+IP地址通常用“点分十进制”表示成（a.b.c.d）的形式，其中，a,b,c,d 都是 0 ~ 255 之间的十进制整数。  
+例：点分十进IP地址（100.4.5.6），实际上是32位二进制数（ `01100100.00000100.00000101.00000110` ）。  
+所以 ip 地址 0 ≤ a,b,c,d ≤ 255  
+另外：`端口号` 是一个16位的二进制数，通常用“十进制”表示成（0~65535）的形式。
+</Callout>
+
+#### 题解代码：
+
+<Tabs items={['解法一', '解法二']}>
+  <Tabs.Tab> 
+```cpp showLineNumbers filename="解法一"
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, cnt;		// cnt存储建立成功的 server 的数量 
+/*
+本题难度在于：输入 ip地址的合法性判断。也就是字符串的合法性判断。
+从题意可知，判断规则为 （举例  192.168.0.1:8080,实际上，192.168.0.1是IP地址，8080是端口号） 
+1. 有 3个 . 一个 :   且3个 . 都在 : 的前面 。 
+2. : 不在字符串的最后 
+3. 可以把 192.168.0.1:8080 看成 5个区域，前四个区域的规则一个，第五个区域的规则略有不同
+
+      192.     168.       0.        1:        8080
+     [区域 1]  [区域 2]  [区域 3]  [区域 4]  [区域 5]
+     
+   区域 1 ~ 区域4 
+   3.1 不能是 . 开头，不能是 :开头，不能有两个连续的前导 0； 数字不能超过255 
+   区域 5
+   3.2 不能是 . 开头，不能是 :开头，不能有两个连续的前导 0； 数字不能超过65535
+*/
+
+// 方法一：查找法。把 server 的 string 和 id 合在一个结构体内，便于查找 id。 id在读入时是个自增的量 
+struct Node{
+    string s;
+    int id;
+};
+Node p[1010];
+
+// 传入server的字符串，查找 id 
+int Find(string ad)
+{
+    for (int i = 1; i <= cnt; i++) {		// 逐一比对，时间复杂度 O(n) 
+        if (p[i].s == ad) return p[i].id;	// 如果找到了，则返回 id 
+    }
+    return -1;
+}
+
+bool check(string ad)
+{
+    int cnt1 = 0, cnt2 = 0;
+    int len = ad.size(); 
+    
+    // 检查规则 1：是否3个 .一个 :   且3个 . 都在 : 的前面 。这一轮 O(n)的循环只用来检查 . 和 ：如果不合规，则直接跳出。 
+    for (int i = 0; i < len; i++) 
+	{
+        if (ad[i]=='.')  cnt1++;	// 遇到一个 . 则 cnt1 ++
+        else if (ad[i]==':') 		// 遇到一个 : 则 cnt2 ++，并提前判断此时前面是否有 3个 . 如果数量不对，则直接返回 
+		{
+            cnt2++;
+            if (cnt1<3) return false;
+        }
+        else if (ad[i]<'0' || ad[i]>'9') return false;		// 检查是否有除了 . : 0~9 之外的其他字符 
+    }
+    if ( (cnt1 != 3) || (cnt2 != 1) ) return false;			// for循环扫完后，判断 . 和 ：的数量 
+    
+    if (ad[len-1] == ':') return false;	// 检查规则 2，:不能在字符串的最后一个 
+    
+    int i = 0;	// i从 0开始逐一扫描 每一个字符 
+    for (int j = 1; j <= 5; j++) 	// 区域 1 ~ 区域 5 ，扫描 5轮 
+	{
+        if ( (ad[i] == '.') || (ad[i]==':') )  return false;	// 规则 3.1 的不能是 . 开头  不能是 :开头
+        
+        if ((ad[i]=='0') && ('0'<=ad[i+1]) && (ad[i+1]<='9')) return false; // 规则 3.1 的不能有两个连续的前导 0
+        
+        long long num = 0;
+        while ((i < len) && ('0' <= ad[i]) && (ad[i] <= '9')) {		//计算连续的数字 
+            num = num * 10 + (ad[i] - '0');
+            i++;	//  
+        }			// 跳出 while 循环的条件是 i++ 后指向的下一个字符不再是数字，而是 . 或者 : 此时说明一个区域检查完成 
+		 
+        if (((j <= 4) && ( num > 255)) || (num > 65535))  return false;	// 规则 3.2 数字是否超过 255 / 65535 
+        
+        i++;	// 跳过 . 或者 :    为下一轮的区域扫描做准备 
+    }
+    
+    return true;
+}
+
+int main()
+{
+    cin >> n;
+    for (int i = 1; i <= n; i++) 
+	{
+        string op, ad;
+        cin >> op >> ad;
+        
+        if (!check(ad))  // 如果检查失败，则输出 ERR 
+			cout << "ERR" << endl;
+        
+        else if (op == "Server") 
+		{
+            if ( Find(ad) != -1 )  cout << "FAIL" << endl;	// 如果 Find(ad) 返回值 != -1 ，说明找到了相同的 server。则本次添加 FAIL 
+            else 
+			{
+                cout << "OK" << endl;	// 否则就是添加成功 
+                p[++cnt] = {ad, i};		// 把 ad 字符串和编号 i存进结构体 
+            }
+        } 
+		else 
+		{
+            int id = Find(ad);	// 如果是 client，则在 server 结构体中查找 p[i].s
+            if (id != -1)  cout << id << endl;	// 如果找到了，则直接输出对应 server 的编号  
+            else cout << "FAIL" << endl;		// 如果没找到，就输出 FAIL 
+        }
+    }
+    return 0;
+}
+```
+  </Tabs.Tab>
+
+<Tabs.Tab>
+```cpp showLineNumbers filename="解法二"
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, cnt;		// cnt存储建立成功的 server 的数量 
+/*
+本题难度在于：输入 ip地址的合法性判断。也就是字符串的合法性判断。
+从题意可知，判断规则为 （举例  192.168.0.1:8080,实际上，192.168.0.1是IP地址，8080是端口号） 
+1. 有 3个 . 一个 :   且3个 . 都在 : 的前面 。 
+2. : 不在字符串的最后 
+3. 可以把 192.168.0.1:8080 看成 5个区域，前四个区域的规则一个，第五个区域的规则略有不同
+
+      192.     168.       0.        1:        8080
+     [区域 1]  [区域 2]  [区域 3]  [区域 4]  [区域 5]
+     
+   区域 1 ~ 区域4 
+   3.1 不能是 . 开头，不能是 :开头，不能有两个连续的前导 0； 数字不能超过255 
+   区域 5
+   3.2 不能是 . 开头，不能是 :开头，不能有两个连续的前导 0； 数字不能超过65535
+*/
+
+bool check(string ad)
+{
+    int cnt1 = 0, cnt2 = 0;
+    int len = ad.size(); 
+    
+    // 检查规则 1：是否3个 .一个 :   且3个 . 都在 : 的前面 。这一轮 O(n)的循环只用来检查 . 和 ：如果不合规，则直接跳出。 
+    for (int i = 0; i < len; i++) 
+	{
+        if (ad[i]=='.')  cnt1++;	// 遇到一个 . 则 cnt1 ++
+        else if (ad[i]==':') 		// 遇到一个 : 则 cnt2 ++，并提前判断此时前面是否有 3个 . 如果数量不对，则直接返回 
+		{
+            cnt2++;
+            if (cnt1<3) return false;
+        }
+        else if (ad[i]<'0' || ad[i]>'9') return false;		// 检查是否有除了 . : 0~9 之外的其他字符 
+    }
+    if ( (cnt1 != 3) || (cnt2 != 1) ) return false;			// for循环扫完后，判断 . 和 ：的数量 
+    
+    if (ad[len-1] == ':') return false;	// 检查规则 2，:不能在字符串的最后一个 
+    
+    int i = 0;	// i从 0开始逐一扫描 每一个字符 
+    for (int j = 1; j <= 5; j++) 	// 区域 1 ~ 区域 5 ，扫描 5轮 
+	{
+        if ( (ad[i] == '.') || (ad[i]==':') )  return false;	// 规则 3.1 的不能是 . 开头  不能是 :开头
+        
+        if ((ad[i]=='0') && ('0'<=ad[i+1]) && (ad[i+1]<='9')) return false; // 规则 3.1 的不能有两个连续的前导 0
+        
+        long long num = 0;
+        while ((i < len) && ('0' <= ad[i]) && (ad[i] <= '9')) {		//计算连续的数字 
+            num = num * 10 + (ad[i] - '0');
+            i++;	//  
+        }			// 跳出 while 循环的条件是 i++ 后指向的下一个字符不再是数字，而是 . 或者 : 此时说明一个区域检查完成 
+		 
+        if (((j <= 4) && ( num > 255)) || (num > 65535))  return false;	// 规则 3.2 数字是否超过 255 / 65535 
+        
+        i++;	// 跳过 . 或者 :    为下一轮的区域扫描做准备 
+    }
+    
+    return true;
+}
+
+int main()
+{
+	map<string, int> mp;	//mp[s]直接返回 ip为 s的服务机的编号
+    cin >> n;
+    for (int i = 1; i <= n; i++) 
+	{
+        string op, ad;
+        cin >> op >> ad;
+        
+        if (!check(ad))  // 如果检查失败，则输出 ERR 
+			cout << "ERR" << endl;
+        
+        else if (op == "Server") 
+		{
+            if ( mp.count(ad) == 1 )  cout << "FAIL" << endl;	// 如果 mp.count(ad) 返回值== 1 ，说明有一个相同的 server。则本次添加 FAIL 
+            else 
+			{
+                cout << "OK" << endl;	// 否则就是添加成功 
+                mp[ad] = i;				// 添加进 map 
+            }
+        } 
+		else 
+		{
+            // 如果是 client，则在 server 结构体中查找 ad字符串对应的 server 数量是否为 1 
+            if (mp.count(ad) == 1)   cout << mp[ad] << endl;	// 如果找到了，则直接输出对应 server 的编号  
+            else cout << "FAIL" << endl;		// 如果没找到，就输出 FAIL 
+        }
+    }
+    return 0;
+}
+```
+</Tabs.Tab>
+</Tabs>
+
