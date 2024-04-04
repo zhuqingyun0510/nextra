@@ -1,0 +1,79 @@
+#### 线上OJ  
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1978  
+AcWing：https://www.acwing.com/problem/content/475/  
+洛谷：https://www.luogu.com.cn/problem/P5015  
+
+#### 核心思想：  
+这道题考察的是 cin.getline() 的用法。cin在遇到空格时就会自动结束，所以只用 cin 肯定不行。
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="default">
+cin.getline() 从输入流中读取**最多 255** 个字符（本题范围为仅5），如果在读取 255 个字符之前遇到换行符（'\n'）时将停止读取。  
+注意，cin.getline() 会读取并**丢弃**换行符，所以在使用 cin.getline() 时其实可以不判断换行符（'\n'）。
+</Callout>
+
+<Tabs items={['解法一', '解法二', '解法三']}>
+  <Tabs.Tab> 
+  ```cpp showLineNumbers {7,11}
+  #include <bits/stdc++.h>
+using namespace std;
+
+int main()
+{
+    char s[10];
+    cin.getline(s, 10);
+    int len = strlen(s), cnt = 0;
+    
+    for(int i = 0; i < len; ++i)
+        if(s[i] != ' ' && s[i] != '\n')
+            cnt++;
+
+    cout << cnt;
+    return 0;
+}
+
+    ```
+  </Tabs.Tab>  
+
+  <Tabs.Tab> 
+  ```cpp showLineNumbers {9,11}
+  #include <bits/stdc++.h>
+using namespace std;
+
+int cnt;
+int main()
+{
+    string a;
+    getline(cin, a);
+    for (int i = 0; i < a.size(); i ++ )
+    	if (a[i] == ' ' || a[i] == '\n') cnt ++ ;
+	
+	cout << a.size() - cnt;
+	
+	return 0;
+}
+    ```
+  </Tabs.Tab>
+
+  <Tabs.Tab> 
+    ```cpp showLineNumbers {8,9}
+    #include <bits/stdc++.h>
+using namespace std;
+
+int main()
+{
+    char c; 
+	int cnt = 0;    
+	while (~scanf("%c", &c))
+		if(c != ' ' && c != '\n')
+			cnt++;
+
+    cout << cnt;
+    return 0;
+}
+    ```
+  
+  </Tabs.Tab>
+
+</Tabs>
