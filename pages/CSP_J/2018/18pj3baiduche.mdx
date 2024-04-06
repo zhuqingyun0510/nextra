@@ -1,0 +1,145 @@
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1980  
+洛谷：https://www.luogu.com.cn/problem/P5017  
+AcWing：https://www.acwing.com/problem/content/477/  
+
+> 这道题出现在普及组第三题，真的是有难度的。不应叫摆渡车，应叫灵魂摆渡车。
+
+#### 核心思想：
+1. 首先，这道题可以考虑用动态规划 DP 来做。  
+2. 其次，由于题目问的是 `“第 i 位同学在第 ti 分钟去等车，求等车时间之和最小值”`，我们可以考虑设  
+      **f[i]** 表示 **`“截止到第 i 分钟时，等车时间的最小和”`**。    
+
+我们对题目进行梳理，发现等车时间其实就是一个**水平的数轴**，如下图所示。
+![水平数轴](/image/18noip3.jpg)  
+
+通过对上图的分析，我们发现 **等待时间** 其实就是 **区间内每个点到区间右边界的距离**。  
+> 比如在 1 - 6  这个区间：5时刻到达的同学等待时间就是 （6-5）\* 2人 = 1分钟 * 2人 = 2分钟  
+比如在 11 - 16 这个区间：13时刻到达的同学等待时间就是 （16-13）\* 1人 = 3分钟 * 1人 = 3分钟  
+比如在 6 - 13 这个区间：11时刻到达的同学等待时间就是 （13-11）\* 1人 = 2分钟 * 1人 = 2分钟  
+所以， 
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="default">
+结论1：题目所求的**等待时间之和** 实际就是求 **所有点到各自所属区间右边界的距离之和**。  
+
+结论2：由于车辆往返一趟的时间是 m 分钟, 所以 **每个区间的宽度不可能小于 m** （即： 下一次发车的时间 - 上一次发车的时间 不可能小于 m），因为只有一辆摆渡车，车子还没回来，无法发车。  
+
+结论3：由于车辆往返一趟的时间是 m 分钟, 所以 **每个区间的宽度不应该 大于等于 2 倍的m** （即： 下一次发车的时间 - 上一次发车的时间 不应该大于 2m），因为如果区间＞2m，那就又可以多跑一趟车（反正这道题不考虑油费）。  
+</Callout>
+
+我们重新回到 DP 的动态转移方程定义上，令
+<Callout type="info">
+**f[i]** 表示时间轴上的 **(0, i]** 区间内所有点到 **各自所属区间右边界** 的 **距离之和** 的 **最小值** 。
+</Callout>
+假设区间 (0, i] 中存在一个时间点 **j**，则区间可划分为  **(0, j]** 和 **(j, i]**  。
+所以状态转移方程可以写为：  
+
+$$ f[i] = f[j] + (j, i]区间内每个点到 i 的距离和$$ , ①   
+
+我们记 **(j, i]** 区间内的**某个点**为 $$t_k$$，则 $$j < t_k ≤ i$$。所以  $$t_k$$ 到 i 的距离为 $$i -  t_k$$  。  
+如果 **(j, i]** 区间内有**多个 $$t_k$$  这样的点**，则 **(j, i]** 区间内 **每个 $$t_k$$ 点到 i** 的 **距离和** 可表示为： 
+
+  $$ \displaystyle\sum_{j < t_k\le i}(i - t_k) $$ ，   ②  
+
+所以状态转移方程 ① 可以表示为： 
+
+  $$ f[i] = f[j] + \displaystyle\sum_{j < t_k\le i}(i - t_k) $$  ，    ③  
+
+由于题目要求的是 **距离之和的最小值**，所以计算 $$f[i]$$ 时需对 $$f[j]$$ 进行 **枚举**，并记录最小值作为最后的 $$f[i]$$，所以 ③ 式 应进化为  
+
+$$ f[i] = \min { (f[j] + \displaystyle\sum_{j < t_k\le i}(i - t_k)) }$$ ，  ④  
+
+根据 **结论2** 和 **结论3**，我们知道每个 **区间的宽度不可能小于 m**，且 **不应大于等于2m**，所以 $$m ≤ i - j ＜ 2m$$， 所以 $$i-2m ＜ j ≤ i - m$$  
+所以上述 ④ 式可进化为  
+
+$$ f[i] = \underset{i-2m < j \le i-m}{\mathop{\min}} { (f[j] + \displaystyle\sum_{j < t_k\le i}(i - t_k)) }$$      ，     ⑤  
+
+在上述 ⑤ 式中还包含了一个较为复杂的 ② 式。我们尝试化简 ② 式，先把括号拆开，得  
+
+$$ \displaystyle\sum_{j < t_k\le i}(i - t_k) =  \displaystyle\sum_{j < t_k\le i}(i) - \displaystyle\sum_{j < t_k\le i}(t_k)$$  ，   ⑥  
+
+此时，拆解的两部分均可以用 **前缀和** 的方法来快速计算。
+
+其中，前面的 $$\displaystyle\sum_{j < t_k\le i}(i)$$ 的数值可理解为在 **区间 (j, i] 内有几个 $$t_k$$， 就加几次 i**。  
+> 比如在 (1, 6] 内有2个点，那数值就是 6\*2=12  
+如果令 **cnt[i]** 表示 **截止到 i 点共有cnt[i] 个数** ； **cnt[j]** 表示 **截止到 j 点共有 cnt[j] 个数**。则    
+
+$$ \displaystyle\sum_{j < t_k\le i}(i) = (cnt[i] - cnt[j])*i  $$  
+
+
+同理， $$\displaystyle\sum_{j < t_k\le i}(t_k)$$ 的数值可理解为 **在区间 (j, i] 内所有 $$t_k$$ 点的数值和**，  
+> 比如在 (1, 6] 内有2个点均为 $$t_k=5$$，那数值就是 5+5=10  
+如果令 **sum[i]** 表示 **截止到 i 点的所有点的距离和**， **sum[j]** 表示**截止到 j 点的所有点的距离和**。则 (j, i] 内所有 $$t_k$$ 点的数值和 可以表示为   
+
+$$ \displaystyle\sum_{j < t_k\le i}(t_k) = (sum[i] - sum[j])$$  
+
+所以 ⑥ 式可以进化为  
+
+$$ \displaystyle\sum_{j < t_k\le i}(i - t_k)  =  (cnt[i] - cnt[j])*i + (sum[i] - sum[j])$$  ，    ⑦  
+
+将 ⑦ 式带回 ⑤ 式得  
+
+<Callout type="info">
+$$ f[i] = \underset{i-2m < j \le i-m}{\mathop{\min}} { (f[j] + (cnt[i] - cnt[j])*i + (sum[i] - sum[j])) }$$ ，   ⑧  
+</Callout>
+
+⑧  式就是我们最终的状态转移方程。
+
+#### 题解代码：
+```cpp showLineNumbers {23,24,30,34,35}
+#include <bits/stdc++.h>
+#define N 4000010
+#define MAXINT 1e9
+
+using namespace std;
+
+int f[N], cnt[N], sum[N];
+
+int main()
+{
+    int n, m, t, T = 0; // T表示最后一个同学到达车站的时间
+    cin >> n >> m;
+    for(int i = 1; i <= n; i ++) 
+    {
+        cin >> t;
+        T = max(T, t);	// 读入时要记录最后一个到达车站的时间 
+        cnt[t] ++;      // 初始记录 t 时刻到达车站的人数 
+		sum[t] += t; 	// 初始记录 t 的数值和 
+    }
+    
+    for(int i = 1; i < T + m; i ++)  // i的循环区间为 [1, T + (m-1)] 
+    {
+        cnt[i] += cnt[i - 1]; 	// 计算前缀和：cnt[i] 表示截止到 i 时刻之前到达车站人数总和为 cnt[i] 
+        sum[i] += sum[i - 1]; 	// 计算前缀和：sum[i] 表示截止到 i 时刻之前的所有点的数值和
+    }
+
+    for(int i = 1; i < T + m; i ++) // i的循环区间为 [1, T + (m-1)] 
+    {
+    	// 由于在主循环中，j <= i - m，当 i < m 时无法执行。故先计算 i∈(0, m] 时的 f[i] （当i∈(0, m]时，j=0，f[0]=cnt[0]=sum[0]=0） 
+        f[i] = i * cnt[i] - sum[i]; 
+        
+        // 核心代码
+		int k = max(0, i - 2 * m + 1); 	//  i-2m＜ j 且 j不能为负数 
+        for(int j = k; j <= i - m; j ++)
+            f[i] = min(f[i], (cnt[i] - cnt[j]) * i - (sum[i] - sum[j]) + f[j]);
+    }
+
+    int ans = MAXINT;
+    for(int i = T; i < T + m; i ++)
+        ans = min(ans, f[i]);
+
+    cout << ans << endl;
+
+    return 0;
+}
+```
+
+
+
+
+
+
+
+
