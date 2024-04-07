@@ -1,0 +1,48 @@
+#### 线上OJ：
+> 一本通:http://ybt.ssoier.cn:8088/problem_show.php?pid=1415
+AcWing:https://www.acwing.com/problem/content/description/472/
+
+#### 核心思想：
+举例2123和23，因为需求码的23长度为2，所以只要判断 2123 % 100，余数和23相等即可.   
+> 注1: % 100是考虑23长度为2, 就对10^2求余数  
+注2: 由于输出最小的，所以对图书编号先排序，然后再匹配, 这样得到的第一个就是答案   
+注3: 由于n和q都是1000，所以时间复杂度只有 $$10^6$$。可以在排序后直接暴力匹配 
+
+#### 题解代码：
+```cpp showLineNumbers {4,17, 25}
+#include <bits/stdc++.h>
+using namespace std;
+// 先枚举10的几次方备用, 比如23长度为2,则求余数时%p[2],正好是%100
+int p[10] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}; 
+
+// 核心思想： 举例2123和23，因为23长度为2，所以2123%100，余数和23相等
+// 由于输出最小的，所以对图书编号先排序，然后匹配的第一个就是答案 
+// 由于n和q都是1000，所以时间复杂度只有10^6。可以在排序后暴力匹配 
+int main()
+{
+	int n, q, len, user_num;
+	cin >> n >> q;
+	int book[n+5];
+	
+	for(int i = 1; i <= n; ++i)  cin >> book[i];  // 读入图书编码 
+		
+	sort(book + 1, book + 1 + n);  // 直接调用sort进行升序排序 
+	
+	for(int i = 1; i <= q; ++i)	   // q次询问 
+	{
+		cin >> len >> user_num;
+		int flag = 0;
+		for(int j = 1; j <= n; ++j)	// 对排好序的书进行注意判断 
+		{
+			if(book[j] % p[len] == user_num) // 如果书编号 % 10^(需求码长度) == 需求码，则找到 
+			{
+				flag = 1;
+				cout << book[j] << endl;
+				break;
+			}
+		}
+		if(!flag)	cout << -1 << endl;
+	}
+	return 0;
+} 
+```

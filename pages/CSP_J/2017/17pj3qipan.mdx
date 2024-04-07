@@ -1,0 +1,119 @@
+#### 线上OJ：
+> 一本通:http://ybt.ssoier.cn:8088/problem_show.php?pid=1416
+AcWing:https://www.acwing.com/problem/content/473/
+
+#### 核心思想:
+1、由于棋盘格子为100*100, 数目不大，所以可以考虑 **dfs 深搜**  
+2、由于本题要求的是走到 **最后一个格子时的最小花费**。 所以在 dfs 的过程中我们可以进行 **优化**, 即: 走到每个格子(x,y)时 **记录** 走到当前格子的 **最小花费 val[x][y]**。这样如果在 dfs 时走到（x，y）坐标的花费已经大于历史某次走到本坐标的最低花费，则可直接跳过不处理  
+3、dfs 的核心判断逻辑  
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="default">
+step1、走到（x，y）坐标的花费是否已经大于历史走到本坐标的最低花费。如果大于，则直接跳过，执行下一个dfs坐标；如果小于，则更新当前坐标的最低花费，并继续  
+
+step2、如果当前已经是最后一个格子(m, m)，则更新val[m][m] 至 ans  
+
+step3、对上下左右四个方向进行 dfs  
+> step 3.1、检查坐标是否 **越界**. 如果不越界, 则继续  
+
+> step 3.2、`如果下一步的格子颜色为空`，且上一步走到当前格子已经 `使用了魔法`，则跳出，进行下一轮  
+
+> step 3.3、`如果下一步的格子颜色为空`，但上一轮 `没有使用魔法`，则本轮可以使用魔法，传入参数为:  
+   $$dfs(nx, ny, cost + 2, 1, cl)$$  
+   注: cost+2表示花费+2;     1 表示本轮使用了魔法;    cl 表示所施魔法颜色与当前地址颜色相同
+
+> step 3.4、`如果下一步地址有颜色`，且与当前地址颜色相同，则传入参数为  
+ 	$$dfs(nx, ny, cost, 0, col[x1][y1])$$  
+    注: 0 表示本轮未使用魔法；col[x1][y1]表示颜色
+
+> step 3.5、如果下一步地址有颜色，且与当前地址颜色不相同，则传入参数为  
+    $$dfs(nx, ny, cost + 1, 0, col[x1][y1])$$    
+    注: cost +1 表示花费+1; ，0 表示本轮未使用魔法 ；col[x1][y1]表示颜色  
+</Callout>
+
+
+其中，dfs的定义为:  
+**void dfs(int x, int y, int cost, int used, int cl)**  
+> x, y：当前棋盘格子的坐标     
+cost：走到当前格子的花费   
+used：从上一步走到当前格子是否使用魔法  
+cl: 从上一步走到当前格子被赋予的颜色（可能是棋盘自身的颜色，也可能是被魔法赋予的颜色）
+
+#### 题解代码：
+```cpp showLineNumbers {18,19,43,46,48}
+#include <bits/stdc++.h>
+#define N 105
+using namespace std;
+
+int n, m; 
+int col[N][N], val[N][N];	// col：记录每个格子的颜色    val记录走到每个格子的最低花费 
+int vis[N][N]; 	// vis 记录每个格子是否被走过 
+int dx[4] = {-1, 0, 1, 0}, dy[4] = {0, 1, 0, -1};
+int ans = 1e9; 
+
+/*
+x, y：当前棋盘格子的坐标    cost：走到当前格子的花费   
+used：从上一步走到当前格子是否使用魔法     
+cl: 从上一步走到当前格子被赋予的颜色（可能是棋盘自身的颜色，也可能是被魔法赋予的颜色） 
+*/
+void dfs(int x, int y, int cost, int used, int cl) 
+{
+    if(cost >= val[x][y])  return;	// 如果本次走到（x，y）坐标的花费已经大于历史某次走到本坐标的最低花费，则直接跳过不处理 
+    else  val[x][y] = cost;	// 否则记录走到本坐标的最低花费 
+    
+    if (x == m && y == m)	// 如果已经到了坐标（m，m），则更新题解的最小值 
+	{
+		ans = min(ans, val[m][m]);
+		return ;
+	} 
+
+    // 分四个方向进行dfs 
+    for (int i = 0; i < 4; i ++ ) 
+    {
+        int x1 = x + dx[i], y1 = y + dy[i];
+        
+        if (x1 < 1 || x1 > m || y1 < 1 || y1 > m || (vis[x1][y1] == 1) ) continue ; // 如果越界，则进行下一轮 
+	
+		vis[x1][y1] = 1;
+        if (col[x1][y1] == -1) // 如果下一步地址的颜色为空 
+        {
+            if (used)
+			{
+				vis[x1][y1] = 0;
+				continue ;	// 且上一步走到当前格子已经使用了魔法，则跳出，进行下一轮 
+			}			 
+            else 					// 如果上一轮没有使用魔法，则本轮可以使用魔法 
+                dfs(x1, y1, cost + 2, 1, cl);	// 对下一步进行dfs，花费+2,并注明本轮已使用魔法               
+        }
+        else if (col[x1][y1] == cl)  // 如果下一步地址有颜色，且与当前地址颜色相同
+			dfs(x1, y1, cost, 0, col[x1][y1]);	  // 则 cost 花费不变，本来未使用魔法传0  
+        else                                // 如果下一步地址有颜色，且与当前地址颜色不相同 
+        	dfs(x1, y1, cost + 1, 0, col[x1][y1]); // 则 cost 花费+1，本轮未使用魔法传0    
+
+		vis[x1][y1] = 0;			
+    }
+}
+
+int main() 
+{
+    scanf("%d%d", &m, &n);
+    memset(col, -1, sizeof(col));	// 初始化：棋盘颜色 
+    memset(val, 0x3f, sizeof(val));	// 初始化：走到每个棋盘格子的最小花费 
+    
+    int x, y, c;        
+    for(int i = 0; i < n; i++) 
+    {
+        scanf("%d%d%d", &x, &y, &c);
+        col[x][y] = c;	// 存入棋盘颜色 
+    }      
+
+	vis[1][1] = 1;
+    dfs(1, 1, 0, 0, col[1][1]);	// 走到坐标（1,1）的最小花费为0，没有使用魔法，(1,1)的颜色就是col[1][1] 
+    
+    if (ans == 1e9) printf("-1"); 
+    else printf("%d\n", ans);
+
+    return 0;
+}
+```
