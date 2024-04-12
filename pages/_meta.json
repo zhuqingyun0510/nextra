@@ -11,10 +11,22 @@
     "type": "page"
   },
   "download": {
-    "title": "Dev C++",
-    "type": "page",
-    "href": "https://www.bloodshed.net/",
-    "newWindow": true
+    "title": "软件下载",
+    "type": "menu",
+    "items": {
+      "Dev C++": {
+        "title": "Dev C++",
+        "href": "https://www.bloodshed.net/"
+      },
+      "NOI Linux2.0": {
+        "title": "NOI Linux2.0",
+        "href": "https://www.noi.cn/gynoi/jsgz/2021-07-16/732450.shtml"
+      },
+      "VirtualBox": {
+        "title": "VirtualBox",
+        "href": "https://www.virtualbox.org/wiki/Downloads"
+      }
+    }
   },
   "contact": {
     "title": "Contact ↗",

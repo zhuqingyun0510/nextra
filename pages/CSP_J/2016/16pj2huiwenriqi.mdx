@@ -1,0 +1,226 @@
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1974  
+AcWing：https://www.acwing.com/problem/content/468/
+
+
+#### 核心思想：
+1、判断是否为回文  
+2、判断是否为合法的年月日  
+由于本题中输入数字只有8位，所以即使逐一判断是否为回文，复杂度也只有 $$O(10^8)$$，比较勉强但可以一试。
+
+判断字符串是否回文最简单的方法：  
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="default">
+$$str == string(str.rbegin(), str.rend())$$  
+</Callout>
+
+即判断字符串与其 **反向** 组成的字符串是否相等。
+
+或者先把字符串取反，然后比较。但由于 `reverse函数会直接在原字符串上取反`，所以需要把取反前的做一个备份。
+```cpp filename="使用 reverse() 函数先把字符串取反"
+string str = to_string(date);
+string s = str;
+reverse(str.begin(), str.end());
+if( str == s )
+    ans ++;
+```
+
+#### 题解代码：
+
+<Tabs items={['解法一：判断字符串与反向字符串', '解法二：四次逐位比对', '解法三：先构建回文数字、再反向比对']}>
+  <Tabs.Tab> 
+```cpp filename="解法一" showLineNumbers {36}
+#include <bits/stdc++.h>
+using namespace std;
+
+int s, e, ans=0;	// s 起始，e 结束
+int months[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+bool isLeap(int year)	// 判断是否为闰年
+{
+	return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
+}
+
+bool check(int date)
+{
+    int year = date / 10000;
+    int month = (date % 10000) / 100;
+    int day = date % 100;
+
+    if ( month == 0 || month >= 13 || day == 0 ) return false;
+
+    if ((month != 2) && (day > months[month])) return false;
+    
+    if (month == 2)
+    {	// 闰年不能大于29天，非闰年不能大于28天
+        if(isLeap(year)) 	return  day > 29 ? false : true;
+        else 				return  day > 28 ? false : true;
+    }
+
+    return true;
+}
+
+void isPalindrome(int date)
+{
+	if(check(date))		// 如果日期正确，则判断是否为回文
+	{
+		string str = to_string(date);
+		if( str == string(str.rbegin(), str.rend()) )
+			ans ++;
+	}
+}
+
+int main()
+{
+	cin >> s >> e;
+	for(int i = s; i <= e; i++)
+	{
+		isPalindrome(i);
+	}
+	cout << ans << endl;
+	return 0;
+}
+```
+import Image from 'next/image'
+ 
+<Image src="/image/16noip21.jpg" alt="样例图" width={248} height={263} />
+
+以上是解法一的运行结果，虽然AC，但是后面几个测试点时间太长了。需要优化。
+
+  </Tabs.Tab>
+
+  <Tabs.Tab> 
+  解法一在判断回文时用到了 $$str == string(str.rbegin(), str.rend())$$，这里会先构造一个新的取反字符串，再做比较。复杂度肯定高于8个数字直接比对，只要比对四次。所以解法二修改了第36,37行代码。
+  ```cpp showLineNumbers {36-37} filename="解法二"
+  #include <bits/stdc++.h>
+using namespace std;
+
+int s, e, ans=0;	// s 起始，e 结束
+int months[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+int y, m, d;	// 年、月、日
+bool isLeap(int year)	// 判断是否为闰年
+{
+	return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
+}
+
+bool check()
+{
+    if ( m == 0 || m >= 13 || d == 0 ) return false;
+
+    if ((m != 2) && (d > months[m])) return false;
+    
+    if (m == 2)
+    {	// 闰年不能大于29天，非闰年不能大于28天
+        if(isLeap(y)) 	return  d > 29 ? false : true;
+        else 			return  d > 28 ? false : true;
+    }
+
+    return true;
+}
+
+void isPalindrome(int date)
+{
+	y = date / 10000;
+    m = (date % 10000) / 100;
+    d = date % 100;
+
+	if(check())		// 如果日期正确，则判断是否为回文
+	{
+		int a[9] = {0, y/1000, (y%1000)/100, (y%100)/10, y%10, m/10, m%10, d/10, d%10};
+		for(int i = 1; i <= 4; i++)
+			if( a[i] != a[9-i])  return;
+		
+		ans ++;
+	}
+}
+
+int main()
+{
+	cin >> s >> e;
+	for(int i = s; i <= e; i++)
+	{
+		isPalindrome(i);
+	}
+	cout << ans << endl;
+	return 0;
+}
+  ```
+ 
+<Image src="/image/16noip22.jpg" alt="样例图" width={506} height={265} />
+从结果上来看，方法二速度有提升。但后三组数据还是比较高，需要进一步优化。
+
+  </Tabs.Tab>
+
+  <Tabs.Tab> 
+
+这时我们思考，先前的方法是从起点一直穷举到终点，比如起点 20000101，终点90000101，那就要枚举 $$7*10^7$$ 个数。但实际上由于前后是对称的，我们实际只要考虑 2000~9000这 $$7*10^3$$ 个数就够了。所以我们可以根据前四位数字，反向构造后四位数字。然后判断该数字 **一、是否在 [起点、终点] 范围内**；**二、判断该数字是不是合法的年份**。这样复杂度就变成了O(104)
+
+  ```cpp filename="解法三、先构建回文数字、再反向比对" showLineNumbers {38-41}
+  #include <bits/stdc++.h>
+using namespace std;
+
+int s, e, ans=0;	// s 起始，e 结束
+int months[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+int y, m, d;	// 年、月、日
+
+bool isLeap(int year)	// 判断是否为闰年
+{
+	return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
+}
+
+void check(int date)
+{
+	y = date / 10000;
+    m = (date % 10000) / 100;
+    d = date % 100;
+    
+    if ( m == 0 || m >= 13 || d == 0 ) return;
+
+    if ((m != 2) && (d > months[m])) return;
+    
+    if (m == 2)
+    {	// 闰年不能大于29天，非闰年不能大于28天
+        if(isLeap(y) && (d > 29)) 	return;
+        else if( !isLeap(y) && (d > 28))  return;
+    }
+		
+	ans ++;
+}
+
+int main()
+{
+	cin >> s >> e;
+	int k = s / 10000;	// 取读入的前四个数字
+	while( k <= 9999 ) // 可优化为9299
+	{	// 根据前四个数字k，反向构造后四个数字。再合并成一个新的8位数b
+		int a[5] = {0, k/1000, (k%1000)/100, (k%100)/10, k%10};
+		int b = k*10000 + a[1] + a[2]*10 + a[3]*100 + a[4]*1000;
+		if( (b >= s) && (b <= e) )	// 如果新的8位数b在范围内，则又是合法的日期，则ans++
+			check(b);
+	
+		k++;		
+	}
+	
+	cout << ans << endl;
+	return 0;
+}
+  ```
+  <Image src="/image/16noip23.jpg" alt="样例图" width={708} height={265} />
+
+从最后的结果来看，在大容量下明显降低了运算复杂度。
+
+
+
+  </Tabs.Tab>
+
+</Tabs>
+
+#### 本题考点：
+字符串的回文判断 **str == string(str.rbegin(), str.rend())**
+或者 **先反向构造** 回文字符串，**再比对** 是否在合法的区间范围内
+
+<Callout type="error">
+信奥中有不少题目 **如果正向枚举会超时**，就尝试**先反向构造数据**，**再枚举** 构造后的数据 **是否** 在 **合理范围**内。 
+</Callout>

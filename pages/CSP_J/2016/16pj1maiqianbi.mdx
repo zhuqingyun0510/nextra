@@ -1,0 +1,39 @@
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1973  
+AcWing: https://www.acwing.com/problem/content/467/
+
+#### 核心思想：
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="default">
+向上取整的代码 **(m+ (n-1))/n** 。（本题考点与2023年J组的第一和第二题一样） 
+</Callout>
+
+
+> 比如需要买31支笔，每包30支，则需要买 （31+30-1）/30 = 60/30 = 2包  
+比如需要买57支笔，每包30支，则需要买 （57+30-1）/30 = 86/30 = 2包  
+比如需要买60支笔，每包30支，则需要买 （60+30-1）/30 = 89/30 = 2包  
+
+#### 题解代码
+```cpp showLineNumbers {14}
+#include <bits/stdc++.h>
+#define MAXINT 0x3f3f3f3f
+using namespace std;
+
+int n, a[4], b[4], t;
+int ans = MAXINT;
+
+int main()
+{
+    cin >> n;
+    for(int i = 1; i <= 3; i++)
+    {
+        cin >> a[i] >> b[i];
+        t = (n + a[i] - 1 )/ a[i];  // 买几套 (m + n-1)/n
+        ans = min(ans, t * b[i]);
+    }
+    cout << ans<< endl;
+    return 0;
+}
+```
