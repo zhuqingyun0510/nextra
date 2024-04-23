@@ -1,0 +1,82 @@
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1969  
+AcWing：https://www.acwing.com/problem/content/463/  
+洛谷：https://www.luogu.com.cn/problem/P2669  
+
+#### 核心思想：
+
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Tabs items={['解法一：简单模拟', '解法二：瞪眼法']}>
+  <Tabs.Tab> 
+  解法1、由于数据量只有 `10000` 天，估可以采用 **模拟每一天** 的方式。
+
+```cpp showLineNumbers filename="解法一、（模拟代码）：" 
+#include <bits/stdc++.h>
+using namespace std;
+
+int k = 0;
+
+int main()
+{
+	int ans = 0, coin = 1, cnt = 0;
+	cin >> k;
+	for(int i = 1; i <= k; i++) // k 轮
+	{
+		ans += coin; 	// +当前的金币金额
+		cnt++;			// 金币出现的次数+1（比如3出现了1次，出现了2次，出现了3次）
+		if(cnt == coin) // 如果金币金额和金币出现的次数相等（连续3天出现3），则重置金币数量和金币出现的次数
+		{
+			coin++;
+			cnt = 0;
+		}
+	}
+	
+	cout << ans << endl;
+	return 0;
+}
+```
+  </Tabs.Tab>
+
+
+
+  <Tabs.Tab> 
+
+解法2、在 *数据量大* 的情况下，模拟每一天容易超时，此时可以考虑用瞪眼法寻找数学规律
+
+import Image from 'next/image'
+ 
+<Image src="/image/15pj1.png" alt="" width={620} height={116} />
+> 比如我们的目标是第6天:在如下的表格中，发现`第6天正好在完整的第3轮`。所以第6天的金币数量前3轮的金币数量总和，1*1+2*2+3*3 = 14  
+比如我们的目标是第13天:在如下的表格中，发现 `第13天` 正好是 `走过了完整的4轮`，它自身 `在第5轮`。所以第13天的金币数量前面完整4轮的金币数量总和，再加上后面还缺的3天，即 （1*1+2*2+3*3+4*4）+5*3 = 31  
+综上所述，方法二是先找出 `完整的n轮`，然后 `每一轮的金币直接用 i*i 计算`（不用for循环i次），再补上最后缺的金币即可。
+
+```cpp showLineNumbers filename="解法二、（数学规律代码）：" {12,13,17,18}
+#include <bits/stdc++.h>
+using namespace std;
+
+int k = 0;
+
+int main()
+{
+	int ans = 0, lun = 0; // 第1轮１个，第2轮2个，第3轮3个，第4轮4个。可知6在第3轮，7在第4轮
+
+	cin >> k;
+	
+	while(k >= ++lun) // 如果剩余的轮次还次包含完整的一轮(lun) ，则继续。
+		k -= lun;
+	
+	lun--; // 跳出时，最后一次while多了一次++lun，所以要减回去
+	
+	for(int i = 1; i <= lun; i++)
+		ans += i * i; // 第i轮的金币数量是 i*i
+		
+	ans += (lun + 1) * k;  // 把最后一轮不完整的金币加上
+	cout << ans;
+	return 0;
+}
+```
+  </Tabs.Tab>
+
+</Tabs>

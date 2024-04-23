@@ -1,0 +1,141 @@
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1971  
+AcWing：https://www.acwing.com/problem/content/465/  
+
+#### 核心思想：
+本题的约束条件有两个：  
+**`条件1、colorx = colorz  `**  
+**`条件2、x、y、z的坐标满足 y − x = z − y（即 y 在 x 和 z 的中心位置）  `**  
+第二个约束条件可以理解为， **z 到 x 的距离是 y 到 x 的距离的两倍**，所以对z暴力枚举时，**步长为2的倍数**  
+
+import Image from 'next/image'
+ 
+<Image src="/image/15pj31.png" alt="样例图" width={550} height={128} />
+
+考场上如果暂时没有更好的想法，可以先把 **暴力枚举** 写出来。本题的暴力法比较简单，只需要枚举x和z，并且在 **枚举z的时候考虑步长为2** 即可（这样可以保证x和z中间一定有整数y，就不用再考虑y了）。这样可以快速拿到40%的分数。
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Tabs items={['解法一、暴力枚举（40%）', '解法二、数学归纳法+前缀和']}>
+  <Tabs.Tab> 
+```cpp filename="解法一、暴力枚举（40%）：" showLineNumbers {16,19}
+#include <bits/stdc++.h>
+#define MOD 10007
+using namespace std;
+
+// 40% 暴力分
+int main()
+{
+	int n, m, ans = 0;
+	cin >> n >> m;
+	
+	int col[n+5], num[n+5];
+	for(int i = 1; i <= n; i++) scanf("%d", &num[i]);
+	for(int i = 1; i <= n; i++) scanf("%d", &col[i]);	
+	
+	for(int x = 1; x <= n; x++)
+		for(int z = x + 2; z <= n; z += 2)	// 考虑x和z中间夹一个y，所以每次搜寻z时步长为2
+		{
+			if(col[x] == col[z])
+				ans += (((x + z) % MOD) * ((num[x] + num[z]) % MOD)) % MOD;
+		}
+	
+	printf("%d", ans % MOD);  // 最后一次别忘了除模
+	return 0;
+}
+```
+  </Tabs.Tab>
+
+  <Tabs.Tab> 
+
+  <Callout type="info">
+  #### 解法二的核心思想：
+思考1、对于分颜色的问题**如果正向枚举超时**，我们可以尝试用 **桶** 的方式思考。由于满足 $$color_x = color_z$$ 才进行计算，所以在读入数据时 **把相同颜色的色块放入同一个桶** 中，这样计算时只需要每个桶内进行枚举判断是否满足 **z 到 x 的步长为 2** 即可。  
+思考2、对于桶内的编号进一步分析。如下图举例，假设蓝色的色块包含序号为1、3、4、5、6、7、12的色块。我们发现满足 z 到 x 的步长为 2 的色块 **要么都是偶数** 编号，**要么都是奇数** 编号。如果我们把奇数和偶数的部分再拆成2个小桶，那么在每个小桶内就不需要枚举判断，而是直接遍历计算每个格子即可。**本题的最终结果就是每个小桶的结果之和**。
+ </Callout>
+
+<Image src="/image/15pj32.png" alt="样例图" width={560} height={350} />
+
+思考3、以上图中蓝色奇数序号的小桶为例，该小桶内的计算公式为，  
+$$ans_j = (x_1+x_2)*(num_1+num_2)+ (x_1+x_3)*(num_1+num_3)+ (x_1+x_4)*(num_1+num_4)$$  
+         $$\quad \quad \quad + (x_2+x_3)*(num_2+num_3)+ (x_2+x_4)*(num_2+num_4)$$  
+         $$\quad \quad \quad + (x_3+x_4)*(num_3+num_4)$$  
+         $$\quad \quad = x_1*(num1+num2)  + x_1*(num_1+num_3) + x_1*(num_1+num_4)$$  
+         $$\quad \quad \quad + x_2*(num_1+num_2)  + x_3*(num_1+num_3) + x_4*(num_1+num_4)$$  
+         $$\quad \quad \quad + x_2*(num_2+num_3)  + x_2*(num_2+num_4) $$  
+         $$\quad \quad \quad + x_3*(num_2+num_3)  + x_4*(num_2+num_4) $$  
+         $$\quad \quad \quad  + x_3*(num_3+num_4)  + x_4*(num_3+num_4)$$  
+         $$\quad \quad  = x_1*(num_1+num_2+num_1+num_3+num_1+num_4)$$  
+         $$\quad \quad \quad  + x_2*(num_1+num_2+num_2+num_3+num_2+num_4)$$  
+         $$\quad \quad \quad  + x_3*(num_1+num_3+num_2+num_3+num_3+num_4)$$  
+         $$\quad \quad \quad  + x_4*(num_1+num_4+num_2+num_4+num_3+num_4)$$  
+         $$\quad \quad  = x_1*(2*num_1 + num_1+num_2+num_3+num_4)$$  
+         $$\quad \quad \quad  + x_2*(2*num_2 + num_1+num_2+num_3+num_4)$$  
+         $$\quad \quad \quad  + x_3*(2*num_3 + num_1+num_2+num_3+num_4)$$  
+         $$\quad \quad \quad  + x_4*(2*num_4 + num_1+num_2+num_3+num_4)$$  
+
+所以，如果一个小桶内有n个格子，则上述公式可以调整为  
+$$ ans_j = x_1*[(n-2)*num_1 + num_1+num_2+num_3+......+num_n] $$  
+        $$\quad \quad \quad + x_2*[(n-2)*num_2 + num_1+num_2+num_3+......+num_n] $$  
+        $$\quad \quad \quad + x_3*[(n-2)*num_3 + num_1+num_2+num_3+......+num_n] $$  
+        $$\quad \quad \quad  ...... $$  
+        $$\quad \quad \quad + x_n*[(n-2)*num_4 + num_1+num_2+num_3+......+num_n] $$  
+
+我们发现，$$num_1+num_2+num_3+......+num_n$$ 在初始读入数据时可以顺便计算出来（前缀和），将其表示为 $$\sum(num_i)$$，表示该小桶中所有格子的数值之和。  
+$$ans_j = x_1*[(n-2)*num1 + \sum(num_i)] + x_2*[(n-2)*num2 + \sum(num_i)] + ...... $$  
+        $$\quad \quad \quad + x_n*[(n-2)*num_n + \sum(num_i)]$$  
+        $$\quad \quad  = x_1*(n-2)*num1  +x_1*\sum(num_i) + x_2*[(n-2)*num2 + x_2* \sum(num_i) +......$$  
+        $$\quad \quad \quad + x_n*(n-2)*num_n + x_n*\sum(num_i)$$  
+        $$\quad \quad  = (n-2)*x_1*num1 + (n-2)*x_2*num2 + ...... + (n-2)*x_n*num_n $$  
+        $$\quad \quad \quad +(x_1+x_2+......+x_n)*\sum(num_i)$$    
+
+上式中，**(n-2)表示该小桶中格子的数量减2**。这个 **n** 可以在初始 **读入数据时先行累加** 出来。 
+因此我们发现，在计算时每一个格子真正参与的部分是：  
+$$ (n-2) * x_i * num_i + x_i * \sum(num_i)$$    
+在上式中，$$x_i$$ 是格子的编号，$$num_i$$ 是格子的数值，（n-2）是格子所属小桶中格子的数量-2（可提前计算），$$\sum(num_i)$$ 是格子所属小桶中所有格子的数值之和（可提前计算）。至此，已不需要枚举任何数值。  
+同时， **每个格子不管归属于哪一个小桶，都要参与一次计算，所以把每一个格子都进行一次计算，所得到的总和就是最终的结果**。
+
+#### 题解代码：
+```cpp filename="解法二、数学归纳法+前缀和：" showLineNumbers {11,28,30,34}
+#include <bits/stdc++.h>
+#define MOD 10007
+#define MAXN 100005
+using namespace std;
+
+const int N = 100010, mod = 10007;
+
+int num[MAXN], col[MAXN]; // num[i]表示第i个格子的数字，col[i]表示第i个格子的颜色
+
+//cnt[i][0]表示颜色为i、编号为偶数的格子的个数
+int sum[MAXN][2], cnt[MAXN][2]; // sum[i][0]表示颜色为i、编号为偶数的格子上数字的∑wi
+                                // sum[i][1]表示颜色为i、编号为奇数的格子上数字的∑wi
+                                // cnt[i][0]表示颜色为i、编号为偶数的格子的个数
+                                // cnt[i][1]表示颜色为i、编号为奇数的格子的个数
+
+int main()
+{
+    int n, m, ans = 0;
+	cin >> n >> m;
+
+    for(int i = 1; i <= n; i ++) scanf("%d", &num[i]);
+
+    for(int i = 1; i <= n; i ++)
+    {
+        scanf("%d", &col[i]);   
+
+        // 根据格子的颜色以及奇偶，更新对应桶的∑wi。每个颜色分为奇偶两桶
+        sum[col[i]][i % 2] = (sum[col[i]][i % 2] + num[i]) % MOD;
+        // 根据格子的颜色以及奇偶，更新对应桶内的格子个数，用于n-2时使用
+        cnt[col[i]][i % 2] ++;
+    }
+
+    for(int i = 1; i <= n; i ++)
+        ans = (ans +  i * ((cnt[col[i]][i % 2] - 2) * num[i] % MOD + sum[col[i]][i % 2])) % MOD;
+
+    printf("%d", ans);
+    return 0;
+}
+```
+
+ </Tabs.Tab>
+</Tabs>

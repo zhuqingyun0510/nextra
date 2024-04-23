@@ -1,0 +1,220 @@
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1972  
+洛谷：https://www.luogu.com.cn/problem/P2672  
+AcWing：https://www.acwing.com/problem/content/466/  
+
+#### 核心思想：
+
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+<Callout type="info">
+1、推销给每一个住户的疲劳值由两部分组成：  
+① 推销给住户的疲劳值 **Ai ( < $$10^3$$ )**；  
+② 从入口走到该住户再走回入口的疲劳值 **2\*Si（< $$10^8$$ ）**  
+
+2、**Ai** 是每个住户都有的基本属性，**都会参与计算**。2*Si 只会在最远的 Si 处进行计算，其他 < Si 的可以在路过的时候推销，故 **不是所有的 Si 都需要计算**。（`本条记为性质1`）
+
+</Callout>
+
+
+先分析这道题，由于给的测试数据只有一个，而且非常水，所以我们自己随机构建一组测试数据用于分析。  
+> 假设把每个住户看成一个结构体（则可如下所示）。  
+node[i].pl 为只推销这一个住户所产生的疲劳值，则node[i].pl 的最大值即为当 X=1（仅推销一个住户时）的解。
+
+```cpp {3}
+struct Node{
+    int a, s; // a为Ai，s为Si
+    int pl; // 如果直接到该住户的疲劳值
+    int idx;// 记录该住户的编号
+};
+Node node[MAXN];
+```
+
+我们构造一组测试数据，如下图,可以发现:  
+> 如果只推销给一个人（X=1），那么应该选 idx 为 5 的。因为输出的是5号的疲劳值 node[5].pl = 20+2*7 = 34。很明显，34 是所有的里面最大的。
+
+import Image from 'next/image'
+ 
+<Image src="/image/15pj41.png" alt="样例图" width={660} height={180} />
+
+> 如果要推销给两个人（X=2），那么除了5号，第二个该选谁？  
+**假设候选人在5号的左侧**，由 **“性质1”** 可知，左侧的住户由于 node[i].s < node[5].s ，故 **s 都不参与最终疲劳值的计算，只有  node[i].a 参与计算**。所以，如果在 **左侧选**，就选 **node[i].a 最大的** 1 号。因为 node[1].a = 10，是左侧剩余4个中最大的。  
+**假设候选人在5号的右侧**，则 node[i].s > node[5].s。所以右侧住户的 a 和 s 都要参与考虑。我们记右侧住户带来的 **疲劳值增量** 为 $$node[i].a + Δs$$， 其中 $$Δs = 2 * ( node[i].s - node[i].5 )$$。由于若选择了更远的s（比如），则更远的 node[i].s 会包含原先的 node[i].5。所以，如果在 **右侧选**，就选 7 号。因为7号的增量为  9 + 2*(9-7) = 13，6号的增量为 3+2*（8-7）=5，8号的增量为  4 + 2*(11-7) = 12。7号的 **增量最大**。  
+
+> 综上所述，**在左侧和右侧的最大值中挑一个最大的**，即可作为下一轮的候选。
+
+
+
+<Tabs items={['解法一、模拟+优先队列', '解法二、dp+前缀和']}>
+  <Tabs.Tab> 
+#### 解法一的核心思想：
+
+<Callout type="info">
+1、先找到初始疲劳值最大的住户，作为 X=1 时的结果，直接输出。同时记录该住户的序号 为 **now**  
+2、在 **now 的左侧寻找 node[i].a 的最大值**，作为左侧最大值 maxL；在 now 的**右侧寻找 node[i].a + Δs 最大值**，作为右侧最大值 maxR。  
+3、在 maxL 和 maxR  中取大者作为下一轮的选择。  
+     a. 如果 maxL 更大，则输出 $$ans+maxL$$，此时 now 不变。  
+     b. 如果 maxR 更大，则输出 $$ans+node[i].a + Δs$$，此时 now 的位置要迁移到更大的 si 处。    
+
+注意1：由于每次都是在now的左侧和右侧寻找最大值，所以可以考虑用 **两个优先队列** 分别存储左侧和右侧。**每次只需要从优先队列的 top 取出合法的数值**即可。  
+注意2：如果右侧的增量更大，则记得**更新 now 的位置至新的 si**。同时由于now的位置发生了变化， **now左右两侧的优先队列都需要更新**。
+</Callout>
+
+```cpp showLineNumbers filename="解法一：模拟。左右两侧均采用优先队列" {42-57}
+#include <bits/stdc++.h>
+#define MAXN 100005
+using namespace std;
+
+struct Node{
+    int a, s;
+    int pl; // 如果直接到该住户的疲劳值
+    int idx;// 记录该住户的编号
+    bool operator <(const Node &a)const{
+		return pl<a.pl;//以结构体中的ans（每一家推销的疲劳值）为比较对象
+	}
+};
+Node node[MAXN];
+
+priority_queue<Node> qR;
+priority_queue<int> qL;
+
+int n, now, maxL, maxR, ans;
+
+// 模拟。每次比较左侧最大值和右侧最大值。如果是右侧最大值，则更新now的位置
+int main()
+{
+    cin >> n;
+    for(int i = 1; i <= n; i++)  scanf("%d", &node[i].s);
+    for(int i = 1; i <= n; i++)  // 读入每个住户的a,s，疲劳值，以及索引号
+    {
+        scanf("%d", &node[i].a);
+        node[i].pl = 2 * node[i].s + node[i].a;
+        node[i].idx = i;
+        qR.push(node[i]);  // 初始都加入右侧的qR优先队列
+    }
+
+    for(int i = 1; i <= n; i++)
+    {
+        maxL = maxR = 0;
+        if(!qL.empty())
+            maxL = qL.top();    // 如果now左侧不为空，则取出左侧最大的ai
+
+        if(!qR.empty()) // 将now右边的最大pl值取出
+            maxR = qR.top().pl;
+
+        if(maxL < maxR - 2 * node[now].s) // 如果右边的最大值更大 （由于右边的距离更远，所以更远距离产生的疲劳值要减去now位置的距离疲劳值，才是右边最大值带来的疲劳值增幅）
+        {
+            ans += maxR - 2 * node[now].s;// 当前输出结果加上右侧最大值的增幅
+            for(int k = now + 1; k < qR.top().idx; k++)
+                qL.push(node[k].a);  // now和新位置所夹的住户疲劳值，都入左侧的优先队列
+
+            now = qR.top().idx; // 更新now的坐标，并从qR弹出
+            qR.pop();
+            
+            while(!qR.empty() && qR.top().idx <= now)
+                qR.pop(); // 保证右侧优先队列的top是在新now的右边
+        }
+        else
+        {
+            ans += maxL; // 如果是左边的大，则输出结果直接加上maxL即可
+            qL.pop();
+        }
+
+        printf("%d\n", ans);
+    }
+    return 0;
+}
+```
+
+注：解法一的时间复杂度是 O(N2)，其实是有风险的。好在数据都过了，说明测试数据中并没有极端数据存在。
+  </Tabs.Tab>
+
+  <Tabs.Tab> 
+
+<Callout type="info">
+#### 思考：
+一般这种线性的，for 循环后数据范围大的题目，很容易用到 **dp** 或者 **前缀和** 来优化。这道题可以用贪心和前缀和来完成，只是等量关系比较难找。具体可参照此处(https://www.luogu.com.cn/article/dhsyn2um)。
+</Callout>
+
+
+考虑下图，依然是刚才的测试数据，但是我们按照 Ai 先进行降序排序。我们如果将 **向 X 家住户推销产品的最大花费记为 ans[x]**，则 **ans[x] 要么来自于 Ai 最大的 前 x 家；要么来自于 Ai 最大的 前 x−1 家，然后最后1家小的去换 x~n 中 pl 值最大的一家**。 
+ 
+<Image src="/image/15pj42.png" alt="样例图" width={662} height={208} /> 
+
+> 如上图所示：  
+如果 X=1，则选择 5 号（因为Ai最大的一个是它，1 ~ n中 pl 值最大的也是它）  
+如果 X=2，则要么选择Ai最大的两个（5号和1号，总疲劳值为34+10=42）；要么选择Ai最大的n-1=1个（5号），然后从2 ~ n中挑选 pl 值最大的（7号，总疲劳值为34+9+4=47）。由于47>42，所以选择7号。  
+如果 X=3，则要么选择Ai最大的三个（5号、1号和4号，总疲劳值为34+10+9=53），要么选择Ai最大的n-1=2个（5号和1号），然后从3 ~ n中挑选 pl 值最大的（7号，总疲劳值为34+10+9+4=57）。由于57>53，所以第三个选择7号。  
+如果 X=4，则要么选择Ai最大的四个（5号、1号、4号和7号，总疲劳值为20+10+9+9+2*9=66），要么选择Ai最大的n-1=3个（5号、1号和4号），然后从4 ~ n中挑选 pl 值最大的（正好也是7号）。  
+
+在这里还需要思考，为何只需要把最小的 Ai 替换成后续最大的 pl。能否将倒数第二小、倒数第三小的 Ai 也替换成第二大的 pl 等。
+答案是不需要。因为
+
+<Image src="/image/15pj43.png" alt="样例图" width={620} height={230} /> 
+
+假设当X=3时，把最小的A3换成后续最大的A8，则会有如下两式：
+> A1 + A2 + A3 + 2 * max(S1, S2, S3)   ①式  
+A1 + A2 + A8 + 2 * max(S1, S2, S8)   ②式
+
+由于A已经先按照降序排好序，所以 A3必 >= A8。如果此时 ①式 < ② 式，则 S8必 ≥ S3。  
+如果把倒数第二小 A2 也换掉，比如换成 Ai。此时我们知道以下确定条件  
+1、Ai < A3 < A2 （因为A已经排好序了）  
+2、Ai + 2 * Si < A8 + 2 * S8 （因为A8是后续最大值，Ai是次最大值）  
+此时的Si 存在两种可能性，要么 Si < S8 或者 Si > S8
+
+> 如果 Si < S8，则 Si 的贡献被 S8 包含，次最小值实际最终的贡献值只有 Ai。但 Ai < A2， 所以替换只会越来越小，没有意义。  
+如果 Si > S8，由于 Ai + 2 * Si < A8 + 2 * S8，所以 Si - S8 的正向贡献 一定小于 Ai - A8 的负向贡献。也就是说，即使 Si 比 S8 大，带来了一些增量，但是 Ai 比 A8 减少的量更多。而 A8 < A2，所以 Ai 比 A2只会减少的量更多，所以替换只会越来越小，没有意义。  
+所以，只需要将最小的 Ai 替换成后续最大的 pl 即可。不需要再考虑次最小值的替换。
+
+#### 题解代码：
+```cpp showLineNumbers filename="解法二：dp+前缀和" {30,33,36,39,42}
+#include <bits/stdc++.h>
+#define MAXN 100005
+using namespace std;
+
+struct Node{
+    int a, s;
+    int pl; // 如果直接到该住户的疲劳值
+};
+Node node[MAXN];
+
+bool cmp(Node x, Node y)
+{
+    return x.a > y.a;
+}
+
+int ans[100010];
+int plmax[100010],smax[100010];
+int n;
+
+int main()
+{
+    cin >> n;
+    for(int i = 1; i <= n; i++)  scanf("%d", &node[i].s);
+    for(int i = 1; i <= n; i++)
+    {
+        scanf("%d", &node[i].a);
+        node[i].pl = 2 * node[i].s + node[i].a;
+    }
+
+    sort(node + 1, node + 1 + n, cmp); // 按照推销疲劳值ai进行降序排序
+
+    // 计算第i～n的节点中，疲劳值的最大值
+    for(int i = n; i >= 1; i--)  plmax[i] = max(plmax[i+1], node[i].pl);
+
+    // 计算前i个节点中，s的最大值
+    for(int i = 1; i <= n; i++)  smax[i] = max(smax[i-1], node[i].s);
+
+    // 计算前i个节点的推销疲劳值ai的和
+    for(int i = 1; i <= n; i++)  ans[i] = ans[i-1] + node[i].a;
+
+    // 每个x的输出为前 x 个最大的ai；或者前 x-1 个最大的ai,加一个i~n中最大的plmax[i]
+    for(int i = 1; i <= n; i++)  printf("%d\n", max(ans[i-1] + plmax[i], ans[i] + 2 * smax[i]));
+
+    return 0;
+}
+```
+
+  </Tabs.Tab>
+
+</Tabs>
