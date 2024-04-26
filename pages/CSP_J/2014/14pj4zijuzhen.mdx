@@ -1,0 +1,114 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1968  
+AcWing：https://www.acwing.com/problem/content/description/462/  
+洛谷：https://www.luogu.com.cn/problem/P2258  
+
+#### 核心思想：
+<Steps>
+##### 思考1
+看到这样的题型，第一反应还是**动态规划DP**。但本题中**又要选行又要选列**，比以前只做列选择的题目**多了一个行变量**。
+##### 思考2
+**假设没有行变量**。那么本题就变成了 **在已知确定的数组中选取c列，使达到某个极值**的问题。这就变成了类似 **最长上升子序列** 的问题.
+##### 思考3
+最长上升子序列的状态转移方程为  $$dp[i] = dp[k] + 1（1≤ k＜i）$$【思想回顾：如果第 i 列是从第 k 列转移过来的，则在dp[k] 基础上+1】。本题中可以考虑设方程为 **$$dp[i] = dp[k] + x（1≤ k＜i）$$** 
+##### 思考4
+上式中的 $x$ 应表示从第 $k$ 列转移到第 $i$ 列时的**增量**。由题意可知，$x$ 由 **水平** 和 **垂直** 两部分de 差值组成，分别记为 $hor[k][i]$ 和 $ver[i]$。  
+<Callout type="default">
+$hor[k][i]$ 表示第 $k$ 列和第 $i$ 列的 **水平方向** 的分值差。如下图所示 $hor[k][i] = |4-7|+|8-6|$  
+$ver[i]$ 表示如果选择第 $i$ 列，则 **垂直方向** 增加的列分值差。如下图所示为 $ver[i] = |7-6|$
+</Callout>
+
+<Image src="/image/14pj41.png" alt="样例图" width={200} height={152} />
+
+##### 思考5
+如此一来，在行固定的情况下，状态转移方程可以罗列为   **$dp[i] = dp[k] + hor[k][i] + ver[i]$**
+##### 思考6
+由于本题不是只选 1 列，而是要在**选 $r$ 列**的基础上找极值，所以上式的 dp[i] 要从一维变成二维。我们设 **dp[i][j] 表示 在行固定的情况下，取第 i 列结尾，且作为第 j 列的最小总分值**。由于 dp[i][j] 是从第 k 列转移过来的，所以第 k 列应该是选中的第 j-1 列，所以 **最终的状态转移方程** 为  
+$dp[i][j] = min(dp[i][j], dp[k][j - 1] + hor[k][i] + ver[i]);$
+##### 思考7
+以上六步解决了“在行固定的情况下，找到最小值”。现在还要处理不同行组合的情况。由于本题中的n和m都非常小，即使最大的从16行中选取8行，也只有$C_{16}^8= 12870$ 种可能性。所以可以**直接枚举行组合**。
+##### 思考8
+在枚举行时，可以利用二进制的方法。比如有8行，要挑选3行，则可从0(0x00000000)一直循环到127(0x11111111)。如果某一个数恰好有3个1（如00001011）,则认为本次选中的行是第1、2、4行。这样不会有遗漏。
+</Steps>
+
+#### 题解代码：
+```cpp filename="解法、（DP代码）：" showLineNumbers {18,19,41,47,48,56,57,62,67,69}
+#include <bits/stdc++.h>
+#define MAXN 17
+#define INF 0x3f3f3f3f
+using namespace std;
+
+int n, m, r, c;
+int a[MAXN][MAXN];
+int row[MAXN];      // row[1]=i 表示选择第i行作为第1行，row[2]=j 表示选择第j行作为第2行
+int ver[MAXN];      // 竖直(vertical)方向上相邻两行的分值。 ver[i]表示在选中的r行中，上下都是第i列的分值差的和
+int hor[MAXN][MAXN];// 水平(horizontal)方向上相邻两列的分值, hor[i][j]表示在选中的r行中，水平第i列和第j列分值差的和
+int dp[MAXN][MAXN]; // 在行固定的情况下，取第 i 列结尾，且作为第 j 列的最小总分值
+
+int cal(int x)     // 统计 x 的二进制中 1 的个数，用于枚举行选择
+{
+    int cnt = 0;
+    while (x)
+    {
+        if(x & 1)  cnt++ ;
+        x = x >> 1;
+    }
+    return cnt;
+}
+
+int main()
+{
+    int ans = INF;
+    scanf("%d%d%d%d",  &n, &m, &r, &c);
+
+    for (int i = 1; i <= n; i ++ )
+        for (int j = 1; j <= m; j ++ )
+            cin >> a[i][j];  // 读入矩阵
+
+    // 外圈 for 循环通过 op 中1的个数来枚举行。比如 00001011 表示枚举第1，2，4行
+    for (int op = 1; op < (1 << n); op++ )
+    {
+        if(cal(op) != r)  continue; // 如果op中1的个数与r相等，则继续下面的操作。否则寻找下一个数
+
+        int cnt = 0;
+        for (int i = 1; i <= n; i++ )
+            if(op >> (i - 1) & 1)
+                row[ ++cnt ] = i;   // row[1]=i 表示选择第i行作为第1行
+
+        // 在行固定的情况下，预先处理行与行之间相同列的分值差
+        for (int i = 1; i <= m; i++ )
+        {
+            ver[i] = 0;
+            for (int j = 2; j <= cnt; j++ )  // ver[i]表示在选中的r行中，上下都是第i列的分值差的和
+                ver[i] +=  abs(a[row[j]][i] - a[row[j - 1]][i]);  // 第2行-第1行；第3行-第二2 ......
+        }
+
+        // 在行固定的情况下，预先处理每一和第i列和第j列的分值差
+        for (int i = 1; i <= m; i ++ )
+            for (int j = i + 1; j <= m; j++ )
+            {
+                hor[i][j] = 0;
+                for (int k = 1; k <= cnt; k++ ) // hor[i][j]表示在选中的r行中，水平第i列和第j列分值差的和
+                    hor[i][j] += abs(a[ row[k] ][j] - a[ row[k] ][i]); // 第row[k]行的第j列 - 第row[k]行的第i列。对 row[k] 进行枚举求和
+            }
+        // 在行固定的情况下，使用dp方程 dp[i][j] = min(dp[i][j], dp[k][j - 1] + hor[k][i] + ver[i])
+        for (int i = 1; i <= m; i++ )
+        {   // dp[i][j] 表示在行固定的情况下，取第 i 列结尾，且作为第 j 列的最小总分值
+            dp[i][1] = ver[i]; // 如果只取 1 列；则没有水平方向的分值差。dp[i]就等于ver[i]
+            for (int j = 2; j <= c; j++ )
+            {
+                dp[i][j] = INF;
+                for (int k = 1; k < i; k++ )  // 如果 dp[i][j] 是从 dp[k][j - 1] 转移过来
+                    dp[i][j] = min(dp[i][j], dp[k][j - 1] + hor[k][i] + ver[i]);
+            }
+            ans = min(ans, dp[i][c]);   // 记录在行固定的情况下，选取了c列的最小值
+        }
+    }
+
+    cout << ans << endl;
+    return 0;
+}
+```
