@@ -1,0 +1,69 @@
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1958  
+AcWing：https://www.acwing.com/problem/content/description/452/  
+洛谷：https://www.luogu.com.cn/problem/P1076  
+
+#### 核心思想：（模拟）  
+1、模拟 `每一层从起始房间开始，轮询 x 个有楼梯的房间`后到达终点房间  
+2、由于 $0<N≤10000，0<M≤100$ ，如果对每一层楼和每一个房间做暴力，时间复杂度为$O(10^6)$，在承受范围之内。  
+3、**但是** 每一层楼 **轮询的步数 x** 可达到1,000,000，**远大于** 每一层有楼梯的 **房间数量**
+> 举例：某层有100个房间，但是要逆时针1,000,000次后的房间才是终点房间。但实际只要逆时针100次即可。所以暴力前要 **先用 x 对 tot[i] 取模，减少无效暴力**。  
+
+4、初始读入每层楼的每个房间信息时，**顺便统计** 每层楼有楼梯的房间总数，作为 tot[i]  
+5、在 **模拟时，从起始房间号 [start] 开始，轮询每一个房间**。 **如果是有楼梯的房间**（读入时用 flag[i][j]=1 标记），则 **轮询步数x--**。 **当 x 减到 0时，就是终点房间**  
+
+#### 题解代码：
+```cpp filename="解法、（模拟）：" showLineNumbers {20,21,28,30,31,33,36,38-43}
+#include <bits/stdc++.h>
+#define MOD 20123
+using namespace std;
+
+const int N = 10005, M = 105;
+
+int n, m, start, ans;  // start 存储进入每一层的起始房间号，第0层时为读入
+int flag[N][M], x[N][M];  // flag[i][j]=1: 1有楼梯，0无楼梯
+int tot[N] = {0}; // tot[i] 记录第i+1层有楼梯房间的数量
+
+// 由于 0<x≤1,000,000，远大于每一层有楼梯的房间数量 tot[i]，所以暴力前要先用x对 tot[i] 取模,减少无效暴力
+int main()
+{
+    scanf("%d%d", &n, &m);
+  
+    int ans = 0;
+    for(int i = 0; i < n; i ++ )
+        for(int j = 0; j < m; j ++ )
+        {
+            scanf("%d%d", &flag[i][j], &x[i][j]);
+            if(flag[i][j])  tot[i]++;
+        }
+
+    cin >> start;
+    for(int i = 0; i < n; i ++ )
+    {
+        int num = x[i][start];  // 取每一层起始房间内的数字作为步数
+        ans = (ans + num) % MOD;// 先记录答案，再取模
+
+        num %= tot[i]; // 步数对当前楼层有梯子的房间数量取模（切忌，先更新ans，再对tot[i]取模。否则ans就错了）
+        if (num == 0)  num = tot[i];// 注意边界，如果取模后为0，说明步数是tot[i]的整数倍。所以只走一次tot[i]即可
+
+        int j = start; // 从起点房间开始
+        while(1)
+        {
+            if(flag[i][j] == 1) // 如果该房间有楼梯
+            {
+                num--;          // 剩余步数-1
+                if(num == 0)    // 如果减完后剩余步数为0
+                {
+                    start = j;  // 则j房间就是这一层的终点房间，也是下一层的起点房间
+                    break;
+                }
+            }
+            j = (j + 1) % m;  // 如果还没有跳出这一层，则j++, 继续搜索下一个房间。直至跳出本层的while循环
+        }
+
+    }
+
+    cout << ans << endl;
+    return 0;
+}
+```

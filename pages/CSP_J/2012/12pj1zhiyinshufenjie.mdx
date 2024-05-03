@@ -1,0 +1,38 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1957  
+AcWing：https://www.acwing.com/file_system/file/content/whole/index/content/4000/  
+洛谷：https://www.luogu.com.cn/problem/P1075  
+
+#### 核心思想：
+1、题中提到：`n是两个不同的质数的乘积，求最大的质数`。假设 $n=a*b$，**b为最大**的质因数，则 **a为n最小** 的质因数  
+2、所以，从2开始，向上**暴力枚举**即可，范围不超过 $sqrt(n)$，写成 i*i ≤ n  
+3、枚举每个数时，**先判断** 该数是否为 **素数**，然后**再判断**是否被n**整除**  
+
+#### 题解代码：
+```cpp filename="解法、暴力枚举" showLineNumbers {7-8,16,18,19}
+#include <bits/stdc++.h>
+using namespace std;
+
+int n;
+bool isprime(int n)  // 判断给定的数是否为质数
+{
+    for(int i = 2; i*i <= n; i++)
+        if( n % i == 0 )  return false;
+
+    return true;
+}
+
+int main()
+{
+    cin >> n;
+    for(int i = 2; i*i <= n; i++)
+    {
+        if( isprime(i) && (n%i == 0) )
+            cout << n/i << endl;
+    }
+    return 0;
+}
+```

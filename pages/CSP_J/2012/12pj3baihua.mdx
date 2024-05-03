@@ -1,0 +1,193 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1959  
+AcWing：https://www.acwing.com/problem/content/description/453/  
+洛谷：https://www.luogu.com.cn/problem/P1077  
+
+#### 核心思想：
+1、这是一道 **动态规划DP** 的题目，问的是**`给定n种花，摆出m盆的方案总数`**。  
+2、由于原文中提到“摆花时 **同一种花放在一起**，且 **不同种类的花** 需 **按标号** 的从小到大的 **顺序** 依次 **摆列**” 也就是类似 “1112233344” 这种排法，故本题中`不涉及到排列组合问题`。我们设 $f[i][j]$ 为给 **前** i 种花，**共** 摆放 j 盆时的方案总数，则最终要求结果就是 f[n][m]。  
+3、很明显，f[i][j] 是从 **前** i-1 种花的方案推导过来的。如果 **第** i 种花的数量是 k 盆$（0 ≤ k ≤ m, k ≤ a[i]）$，则 **前** i-1 种花摆放的数量就是 j-k 盆。所以  
+<Callout type="default"> 
+$f[i][j] = \sum\limits_{\substack{0 \leq k \leq m \\ k \leq a[i]}}(f[i-1][j-k]); $   
+</Callout>
+4、注意初始化 $f[i][0] = 1$。 表示`前 i 种花，摆放0盆的方案数是1`，就是都不摆。初始化时要从f[0][0]开始，否则f[1][1]数据会出错  
+
+#### 题解代码：
+<Tabs items={['解法一、动态规划', '解法二、二维数组滚动压缩至一维数组', '解法三、深搜dfs(40%)', '解法四、深搜dfs(记忆化搜索)']}>
+  <Tabs.Tab> 
+  ##### 解法一、动态规划
+```cpp filename="解法一、动态规划：" showLineNumbers {17,19-22}
+#include <bits/stdc++.h>
+#define MOD 1000007
+using namespace std;
+
+const int N = 105;
+int n, m;
+int a[N], f[N][N]={0};  // a[i]表示第i种花最多多少盆; f[x][y]记录前i种花，摆放了共j盆的方案数
+
+/* 核心思想：动态规划，f[i][j] 从前面的 f[i-1][j-k] 传递过来。
+故设 f[i][j] 表示前i种花，摆放了共j盆的方案数
+*/
+int main()
+{
+    scanf("%d %d", &n, &m);
+	for(int i = 1; i <= n; i++)  scanf("%d", &a[i]);
+
+	for(int i = 0; i <= n; i++)  f[i][0] = 1;  // 前i种花，摆放0盆的方案数是1，就是都不摆。初始化时要从f[0][0]开始，否则f[1][1]数据会出错
+
+	for(int i = 1; i <= n; i++)   // 前i种花
+        for(int j = 1; j <= m; j++) // 共拜访了j盆， j<=m
+            for(int k = 0; k <= min(a[i], j); k++)  // 第i种花摆放了k盆,k<=m,k<=a[i]，则前i-1种花摆放了j-k盆
+                f[i][j] = (f[i][j] + f[i-1][j-k]) % MOD;    // 方程
+
+	cout << f[n][m]; // 从第 1 种花要摆放 m 盆开始深搜
+	return 0;
+}
+```
+   </Tabs.Tab>   
+
+<Tabs.Tab> 
+解法一使用了二维数组f[i][j]进行动态规划，但是我们可以将其压缩至一维数组，公式推导可参见 [oi.wiki](https://oi.wiki/dp/knapsack/)。  
+<Callout type="info"> 
+压缩时的注意事项：  
+1、去掉 i 的维度  
+2、j 的区间倒过来写  
+3、$k$从1开始，保证 $f[j]$ 与 $f[0] ~ f[j-1]$ 相关  
+</Callout>
+##### 解法二、二维数组滚动压缩至一维数组
+```cpp filename="解法二、二维数组滚动压缩至一维数组：" showLineNumbers {20,21-25}
+#include <bits/stdc++.h>
+#define MOD 1000007
+using namespace std;
+
+const int N = 105;
+int n, m;
+int a[N], f[N]={0};  // a[i]表示第i种花最多多少盆; f[x][y]记录前i种花，摆放了共j盆的方案数
+
+/*
+二维数组滚动压缩到一维数组
+1、去掉 i 的维度  
+2、j 的区间倒过来写  
+3、k 从1开始，保证 f[j] 与 f[0] ~ f[j-1] 相关  
+*/
+int main()
+{
+    scanf("%d %d", &n, &m);
+	for(int i = 1; i <= n; i++)  scanf("%d", &a[i]);
+
+	f[0] = 1;  // 前i种花，摆放0盆的方案数是1，就是都不摆。初始化时要从f[0]开始，否则f[1]数据会出错
+
+	for(int i = 1; i <= n; i++)   // 前i种花
+        for(int j = m; j >= 1; j--) // j 从 m 开始，倒着减
+            for(int k = 1; k <= min(a[i], j); k++)  // k 从1开始
+                f[j] = (f[j] + f[j-k]) % MOD;    // 方程
+
+	cout << f[m]; 
+	return 0;
+}
+```
+</Tabs.Tab> 
+<Tabs.Tab> 
+##### 解法三、深搜dfs
+本题也可以考虑采用深搜进行。  
+核心思想：  
+1、dp[x][y] 表示从 **第 x 种花开始**，**后续还能摆放 y 盆**的方案总数  
+深搜dfs： **如果第 x 种花占用 i 盆，则从第 x+1 种花开始，后续还能摆放 y-i 盆**（0 ≤ i ≤ a[x]，i ≤ y）  
+2、对 x 和 y 进行边界处理  
+> 如果后续还能摆0盆，则只有1种方案，就是不需摆  
+如果已经到了最后一种花，且剩余位置充足，就1种方案（摆够y个即可）  
+如果已经到了最后一种花，但剩余位置不够，则这种摆法不成立，返回0
+
+```cpp filename="解法三、深搜dfs(40%)：" showLineNumbers {16-18,22,32}
+#include <bits/stdc++.h>
+#define MOD 1000007
+using namespace std;
+
+const int N = 105;
+int n, m;
+int a[N];  // a[i]表示第i种花最多多少盆
+
+/* 核心思想：
+1、从第 x 种花开始，后续还能摆放 y 盆的方案总数
+深搜dfs： 如果第 x 种花占用 i 盆，则从第 x+1 种花开始，后续还能摆放 y-i 盆（0<=i<=a[x]，i<=y）
+2、对 x 和 y 进行边界处理
+*/
+int dfs(int x, int y)
+{
+	if (y == 0) return 1;				// 如果后续还能摆0盆，则只有1种方案，就是不需摆
+	if (x == n && y <= a[x]) return 1;	// 如果已经到了最后一种花，且剩余位置充足，就1种方案（摆够y个即可）
+	if (x == n && y > a[x]) return 0;	// 如果已经到了最后一种花，但剩余位置不够，则这种摆法不成立，返回0
+
+	int tot = 0;
+	for(int i = 0; i <= min(a[x], y);i ++)  // 第 x 种花占用 i 盆,（0<=i<=a[x]，i<=y）
+		tot = (tot + dfs(x+1, y-i)) % MOD;    // 各种后续方案数汇总即为：从第 x 种花开始，后续还能摆放 y 盆的方案总数
+
+	return tot;
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+	for(int i = 1; i <= n; i++)  scanf("%d", &a[i]);
+
+	cout << dfs(1, m) << endl; // 从第 1 种花要摆放 m 盆开始深搜
+	return 0;
+}
+```
+注：以上解法只能拿到40%的分数。其余均超时。
+
+</Tabs.Tab> 
+
+
+<Tabs.Tab> 
+##### 解法四、深搜dfs(记忆化搜索)
+解法三中的深搜dfs存在大量重复计算，我们可以通过 **记忆化搜索** 来避免这种重复计算。
+```cpp filename="解法四、深搜dfs(记忆化搜索)：" showLineNumbers {16,25}
+#include <bits/stdc++.h>
+#define MOD 1000007
+using namespace std;
+
+const int N = 105;
+int n, m;
+int a[N], dp[N][N]={0};  // a[i]表示第i种花最多多少盆; dp[x][y]记录从第 x 种花开始，后续还能摆放 y 盆的方案总数
+
+/* 核心思想：
+1、从第 x 种花开始，后续还能摆放 y 盆的方案总数
+深搜dfs： 如果第 x 种花占用 i 盆，则从第 x+1 种花开始，后续还能摆放 y-i 盆（0<=i<=a[x]，i<=y）
+2、对 x 和 y 进行边界处理
+*/
+int dfs(int x, int y)
+{
+    if(dp[x][y] != 0)  return dp[x][y];
+
+	if (y == 0) return 1;				// 如果后续还能摆0盆，则只有1种方案，就是不需摆
+	if (x == n && y <= a[x]) return 1;	// 如果已经到了最后一种花，且剩余位置充足，就1种方案（摆够y个即可）
+	if (x == n && y > a[x]) return 0;	// 如果已经到了最后一种花，但剩余位置不够，则这种摆法不成立，返回0
+
+	int tot = 0;
+	for(int i = 0; i <= min(a[x], y);i ++)  // 第 x 种花占用 i 盆,（0<=i<=a[x]，i<=y）
+	{
+	    dp[x+1][y-i] = dfs(x+1, y-i);
+		tot = (tot + dp[x+1][y-i]) % MOD;    // 各种后续方案数汇总即为：从第 x 种花开始，后续还能摆放 y 盆的方案总数
+    }
+
+	return tot;
+}
+
+// 40%分数
+int main()
+{
+    scanf("%d %d", &n, &m);
+	for(int i = 1; i <= n; i++)  scanf("%d", &a[i]);
+
+	cout << dfs(1, m) << endl; // 从第 1 种花要摆放 m 盆开始深搜
+	return 0;
+}
+```
+
+</Tabs.Tab> 
+
+</Tabs> 

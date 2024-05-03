@@ -1,0 +1,93 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1953  
+AcWing：https://www.acwing.com/problem/content/447/  
+洛谷：https://www.luogu.com.cn/problem/P1307  
+
+#### 核心思想：
+本题可以直接对**字符串**处理，**也可以** 直接对 **int** 进行处理  
+> int的范围是 -2,147,483,648 到 2,147,483,647，正好覆盖题中的 -1,000,000,000 ≤ N≤ 1,000,000,000 
+
+<Tabs items={['解法一、字符串处理', '解法二、int处理']}>
+  <Tabs.Tab> 
+##### 字符串处理方法
+1、如果是0，直接输出0    
+2、如果是负数，先把负号输出，然后把剩余的字符串翻转
+<Callout type="default"> 
+3、反转可使用 **reverse(s.begin()+i, s.end())**, i 表示从第 i 位到末尾进行取反  
+4、输出时采用 **substr(i, len-i)** 表示从字符串第 i 位开始输出，输出长度为 len-i
+</Callout>
+
+##### 题解代码：
+```cpp filename="解法一、字符串处理" showLineNumbers {21,24,22,29,27,26}
+#include <bits/stdc++.h>
+using namespace std;
+
+string s;
+int len;
+
+void prt(int i) // i：从s[i]开始翻转
+{
+    reverse(s.begin() + i, s.end()); // 从第 i 位到末尾进行取反
+
+    while(s[i] == '0')  i++;  // 跳过取反后的前导 0
+
+    cout << s.substr(i, len-i); // 从第i位开始输出，输出长度为 len - i
+}
+
+// 字符串方法
+int main()
+{
+    cin >> s;
+    len = s.size();
+    if( s == "0" )  cout << '0'; // 如果是0，直接输出0
+    else
+    {
+        if( s[0] == '-' )  // 如果是负数
+        {
+            cout << '-';   // 先输出负号
+            prt(1);        // ，然后从 s[1]开始翻转
+        }
+        else  prt(0); // 否则，就直接从 s[0]开始翻转
+    }
+
+    return 0;
+}
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+##### 对 int 的处理方法
+1、先处理负号  
+2、数字反向采用的方法与读入字符转成数字的方法类似，只是字符不是读入，而是自己 **求余** 获得
+
+##### 题解代码：
+```cpp filename="解法二、int处理" showLineNumbers {17-18}
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, ans = 0;
+
+int main()
+{
+    cin >> n;
+    if(n < 0)
+    {
+        cout << '-';
+        n = -n;
+    }
+
+    while(n)  // 类似读入字符“123”时将其转化为数字123的处理方法。只是字符不是读入，而是自己求余获得
+    {
+        ans = ans * 10 + n % 10;
+        n /= 10;
+    }
+    cout << ans << endl;
+    return 0;
+}
+```
+
+  </Tabs.Tab>
+
+</Tabs> 

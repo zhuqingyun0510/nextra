@@ -1,0 +1,237 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：  
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1960  
+AcWing：https://www.acwing.com/problem/content/454/  
+洛谷：https://www.luogu.com.cn/problem/P1078  
+
+#### 相似题目：
+本题和 2017年 NOIP J 组第3题 棋盘 类似。
+
+#### 核心思想：
+由于本题的数据范围 **n ≤ 100**,非常小，所以可以采用 **深搜 dfs** 进行。同时，本题实际是求最短路，因此可用最短路的方法进行。由于 n 最大为100，所以即使采用 floyd 三重循环也只有 $O(10^6)$ 。
+
+#### 题解代码：
+
+<Tabs items={['解法一、深搜dfs', '解法二、Floyd', '解法三、dijkstra']}>
+  <Tabs.Tab> 
+
+##### 深搜
+1、从 **起点国** 开始，dfs每一个国家到起点国家的最短距离。  
+2、向下dfs时的判断规则为（X为当前国家，i为下一个国家）  
+> a. 如果 x,i 两国之间没有路，则不走  
+b. 如果 i 国文化已经学过，则不走  
+c. 如果 i 国文化对 x 国文化排斥，则不走  
+否则，dfs下一个国家  
+
+```cpp showLineNumbers filename="解法一、深搜dfs" {24-25,31-33,35-37}
+#include <bits/stdc++.h>
+#define INF 0x3f3f3f3f
+using namespace std;
+
+const int MAXN = 105;
+int n, k, m, s, t;
+int c[MAXN];       // c[i] 记录第i个国家的文化；
+int a[MAXN][MAXN]; // a[i][j]=1 表示第i种文化对第j种文化排斥。0表示不排斥
+int e[MAXN][MAXN]; // e[i][j]=d 表示第i个国家到第j个国家之间有一条边，长度为d
+int dis[MAXN];     // dis[i] 记录从起点国到第i个国家的最短距离
+bool vis[MAXN];    // vis[i] = true 表示第i种文化已经学过
+
+/*
+深搜dfs：
+1、从起点国家开始，dfs每一个国家到起点国家的最短距离。
+2、向下dfs时的判断规则为（X为当前国家，i为下一个国家）
+a. 如果 x,i 两国之间没有路，则不走
+b. 如果 i 国文化已经学过，则不走
+c. 如果 i 国文化对 x 国文化排斥，则不走
+入参：x为当前国家：d为x国到起点国的最短距离
+*/
+void dfs(int x, int d)
+{
+    if (d >= dis[x])  return;	// 如果x国当前传进来的距离d大于之前算过的最短距离 dis[x]， 则返回，不再计算后续路径
+    dis[x] = d; // 否则，更新x国到起点国的最段距离
+
+    // 继续向下深搜dfs
+    if (x == t) return; // 如果当前已达到终点国，则不继续深搜
+    for (int i = 1; i <= n; i ++)
+    {				    // 否则，枚举每一个国家 i
+        if( e[x][i] == INF ) continue;  // 如果x,i两国之间没有路，则枚举下一个国家
+        if( vis[c[i]] == true ) continue;       // 如果 i 国文化已经学过，则枚举下一个国家
+        if( a[c[i]][c[x]] == 1 )  continue; // 如果 i 国文化对 x 国文化排斥，则枚举下一个国家
+
+        vis[c[i]] = true;  // 对 i 国深搜之前，先标记该国文化为已访问
+        dfs(i, d + e[x][i]);
+        vis[c[i]] = false; // 推出dfs时恢复现场
+	}
+}
+
+
+int main()
+{
+    scanf("%d %d %d %d %d", &n, &k, &m, &s, &t);
+    for(int i = 1; i <= n; i++)  scanf("%d", &c[i]);   //国家 i的文化为 Ci
+    for(int i = 1; i <= k; i++)
+        for(int j = 1; j <= k; j++)
+            scanf("%d", &a[i][j]);  //a[i][j] = 1 表示文化 i 排斥外来文化 j
+
+    memset(dis, 0x3f, sizeof(dis)); // 初始化每个国家到起点国的最短距离为正无穷
+    memset(e, 0x3f, sizeof(e));     // 初始化国与国之间的边为正无穷
+
+    for(int i = 1; i <= m; i++)
+    {
+        int u, v, d;
+        scanf("%d %d %d", &u, &v, &d);
+        e[u][v] = min(e[u][v], d);  // 邻接矩阵:由于两个国家之间可能有多条道路，所以读入时取最小值存边
+        e[v][u] = min(e[v][u], d);  // 邻接矩阵:由于两个国家之间可能有多条道路，所以读入时取最小值存边
+    }
+
+    vis[c[s]] = true; // 起点国的文化标记为已学过
+    dfs(s, 0);        // 从起点国s进行深搜，当前最短距离为0
+
+    if (dis[t] == INF)  printf("-1\n");
+    else  printf("%d\n", dis[t]);
+
+    return 0;
+}
+```
+
+</Tabs.Tab> 
+
+<Tabs.Tab>
+##### floyd 求最短路
+核心要点:
+1、在处理三重循环之前，先把边的关系梳理完毕。即使 e[i][j] 有值，但如果 i 和 j 属于不同的文化，也说明这条路走不通，故应将 e[i][j] 改为无穷大
+```cpp showLineNumbers filename="解法二、Floyd" {31-33,35-39}
+#include <bits/stdc++.h>
+#define INF 0x3f3f3f3f
+using namespace std;
+
+const int MAXN = 105;
+int n, k, m, s, t, ans;
+int c[MAXN];       // c[i] 记录第i个国家的文化；
+int a[MAXN][MAXN]; // a[i][j]=1 表示第i种文化对第j种文化排斥。0表示不排斥
+int dis[MAXN][MAXN]; // e[i][j]=d 表示第i个国家到第j个国家之间有一条边，长度为d
+
+
+int main()
+{
+	scanf("%d %d %d %d %d", &n, &k, &m, &s, &t);
+	memset(dis, 0x3f, sizeof(dis));     // 初始化国到国之间的最短距离为正无穷
+
+    for(int i = 1; i <= n; i++)  scanf("%d", &c[i]);   //国家 i的文化为 Ci
+
+	for(int i = 1; i <= k; i++)
+        for(int j = 1; j <= k; j++)
+            scanf("%d", &a[i][j]);  //a[i][j] = 1 表示文化 i 排斥外来文化 j
+
+    for(int i = 1; i <= m; i++)
+    {
+        int u, v, d;
+        scanf("%d %d %d", &u, &v, &d);
+        dis[u][v] = min(dis[u][v], d);  // 邻接矩阵:由于两个国家之间可能有多条道路，所以读入时取最小值存边
+        dis[v][u] = min(dis[v][u], d);  // 邻接矩阵:由于两个国家之间可能有多条道路，所以读入时取最小值存边
+    }
+
+    for (int i = 1; i <= n; i ++)
+        for (int j = 1; j <= n; j ++)
+            if(a[c[i]][c[j]] == 1)  dis[i][j] = INF; // 如果 i 和 j 属于不同的文化，则此路也不通
+
+    for (int k = 1; k <= n; k ++)
+        for (int i = 1; i <= n; i ++)
+            for (int j = 1; j <= n; j ++)
+                if (dis[i][j] > dis[i][k] + dis[k][j])
+                    dis[i][j] = dis[i][k] + dis[k][j];
+
+	if (dis[s][t] == INF)  printf("-1");
+	else  printf("%d\n", dis[s][t]);
+
+	return 0;
+}
+```
+
+</Tabs.Tab>
+
+
+<Tabs.Tab> 
+
+##### dijkstra
+由于是求 **单源最短路**，所以也可以用 dijkstra 算法来完成。如下供参考
+```cpp showLineNumbers filename="解法三、dijkstra" {21,24,26,27,31,35,63,66}
+#include <bits/stdc++.h>
+#define INF 0x3f3f3f3f
+using namespace std;
+
+const int MAXN = 105;
+int n, k, m, s, t, ans;
+int c[MAXN];       // c[i] 记录第i个国家的文化；
+int a[MAXN][MAXN]; // a[i][j]=1 表示第i种文化对第j种文化排斥。0表示不排斥
+int e[MAXN][MAXN]; // e[i][j]=d 表示第i个国家到第j个国家之间有一条边，长度为d
+int dis[MAXN];     // dis[i]=d 表示第i个国家到起点国最段距离为d
+bool vis[MAXN];    // vis[i] = true 表示第i种文化已经学过
+
+/*
+朴素 dijkstra
+*/
+void dijkstra(int u)
+{
+    int minval, k = -1;
+    for(int i = 1; i <= n - 1; i++)  // 在剩余的顶点中，挑选顶点k，使dis[k]最小。做 n-1 轮
+    {
+        minval = INF;
+        for(int j = 1; j <= n; j++)
+        {
+            if( (vis[j] == false) && ( dis[j] < minval ) )
+            {
+                minval = dis[j];
+                k = j;
+            }
+        }
+
+        if(k == -1)  return;  // 如果本轮未找到最小值，则退出
+
+        vis[k] = true;
+        for(int j = 1; j <= n; j++)  // 使用本轮最短距离更新剩余每一个城市的最短距离
+            dis[j] = min(dis[j], dis[k] + e[k][j]);
+    }
+}
+
+int main()
+{
+    scanf("%d %d %d %d %d", &n, &k, &m, &s, &t);
+    memset(e, 0x3f, sizeof(e));     // 初始化国到国之间的最短距离为正无穷
+    memset(dis, 0x3f, sizeof(dis));     // 初始化国到国之间的最短距离为正无穷
+
+    for(int i = 1; i <= n; i++)  scanf("%d", &c[i]);   //国家 i的文化为 Ci
+
+    for(int i = 1; i <= k; i++)
+        for(int j = 1; j <= k; j++)
+            scanf("%d", &a[i][j]);  //a[i][j] = 1 表示文化 i 排斥外来文化 j
+
+    for(int i = 1; i <= m; i++)
+    {
+        int u, v, d;
+        scanf("%d %d %d", &u, &v, &d);
+        e[u][v] = min(e[u][v], d);  // 邻接矩阵:由于两个国家之间可能有多条道路，所以读入时取最小值
+        e[v][u] = min(e[v][u], d);  // 邻接矩阵:由于两个国家之间可能有多条道路，所以读入时取最小值
+    }
+
+    for(int i = 1; i <= n; i ++)
+        for(int j = 1; j <= n; j ++)
+            if( a[c[i]][c[j]] == 1 )  e[i][j] = INF;  // 如果两个国家之间文化排斥，即使i->j有边也走不通，故直接改为正无穷
+
+    for(int i = 1; i <= n; i++)  dis[i] = e[i][s]; // 先用每一个国家到s国的边作为最段距离初始化
+    vis[s] = true;
+    dis[s] = 0; // 起点到起点的距离为0
+    dijkstra(s);
+
+    if (dis[t] == INF)  printf("-1");
+    else  printf("%d\n", dis[t]);
+
+    return 0;
+}
+```
+
+</Tabs.Tab> 
+
+</Tabs> 

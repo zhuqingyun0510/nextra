@@ -1,0 +1,158 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1955  
+AcWing：https://www.acwing.com/problem/content/449/  
+洛谷：https://www.luogu.com.cn/problem/P1309  
+
+#### 关键词句
+**`“每轮比赛开始前，以及所有比赛结束后，都会按照总分从高到低对选手进行一次排名”`**。这个句子告诉我们：  
+1、第一轮比赛之前需要先排一次序，不能直接上来就比；  
+2、每一轮比赛开始之前（排好序后），**队伍是有序的**  
+
+#### 核心思想： 模拟 + 排序
+本题可采用**模拟**，进行 r 轮后，输出排名第 q 的人即可
+
+#### 题解代码：
+<Tabs items={['解法一、模拟+快速排序', '解法二、模拟+桶排序(100%)']}>
+  <Tabs.Tab>
+排序采用默认的**快速排序**先试一遍模拟
+```cpp filename="解法一、模拟+快速排序（不开O2情况下60%分，开了O2得80%分）" showLineNumbers {15,16,30,34,35,37}
+//#pragma GCC optimize(2)
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200010;
+int n, r, q;
+
+struct Node
+{
+    int s, w, id;  // s为分数，w为实力值，id为选手编号
+}a[N];
+
+bool cmp(Node x, Node y)
+{
+    if( x.s == y.s ) return x.id < y.id;  // 如果分数相同，id 小的排在前面
+    else  return x.s > y.s; // 否则。分数高的排在前面
+}
+
+int main()
+{
+    scanf("%d %d %d", &n, &r, &q);
+	// 读入并初始化每个选手的分数、id，和实力值
+	for(int i = 1; i <= 2 * n; i++)
+    {
+        scanf("%d", &a[i].s);
+        a[i].id = i;
+    }
+    for(int i = 1; i <= 2 * n; i++)  scanf("%d", &a[i].w);
+
+    sort(a + 1, a + 1 + 2 * n, cmp);  // 按题意，每轮比赛前，先进行一次排序。故第一次比赛前的排序不能遗漏
+
+	while(r--)  // 模拟 r 轮
+    {
+        for(int i = 1; i <= 2 * n; i += 2)  // 每一次比赛两组人
+            a[i].w > a[i+1].w ? a[i].s++ : a[i+1].s++;  // 如果第 i 个人的实力值更大，则第 i 个人的分数++；否则，第 i+1 个人的分数++
+
+		sort(a + 1, a + 1 + 2 * n, cmp); // 一轮结束后重新排序
+	}
+
+	printf("%d", a[q].id);
+
+	return 0;
+}
+```
+以上方法在开了O2的情况下，只能过80%的测试点。
+
+    </Tabs.Tab>
+
+    <Tabs.Tab>
+##### 桶排序
+由于快速排序本身的时间复杂度是 $O(NlogN)$，r 轮就是 $O(r*NlogN)$，会超时。  
+仔细研读本题，会发现:  
+1、**每一轮比赛（总共 r 轮）正式开始之前，队伍都是严格有序的**  
+2、每一轮的 **每一场** 比赛都有 **一个胜者**，**一个败者**。胜者都是+1分，败者都是+0分  
+3、这里考虑用 **两个桶**，一个桶装**胜者**，一个桶装**败者**   
+4、**胜者都+1分，相当于没加；败者都+0分，也没加**  
+所以**胜者桶里保持着上一轮的排序**，**败者桶里也保持着上一轮的排序**。  
+这样一来，每一轮结束后的排序就不再需要O(NlogN)的快速排序，而是**直接拿两个桶的第一个数值进行比较**，取最大值即可，时间复杂度变为O(N)。
+
+代码如下：
+```cpp filename="解法二、模拟+桶排序(100%)" showLineNumbers {10,21,23,24,27,28,44,51-61,65}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200010;
+int n, r, q;
+
+struct Node
+{
+    int s, w, id;  // s为分数，w为实力值，id为选手编号
+}a[N], win[N], lose[N];  // 桶排序：每一轮比赛后，赢的人放在赢的桶里，输的人放在输的桶里。这样每个桶内都是默认排好序的，桶内无需再排序
+
+bool cmp(Node x, Node y)
+{
+    if( x.s == y.s ) return x.id < y.id;  // 如果分数相同，id 小的排在前面
+    else  return x.s > y.s; // 否则。分数高的排在前面
+}
+
+void tsort()  // 将win和lose两个桶合并为新的a数组
+{
+    int k1 = 1, k2 = 1, i = 1;
+    while( k1 <= n && k2 <= n )
+    {
+        if( cmp(win[k1], lose[k2]) )   a[i++] = win[k1++];
+        else  a[i++] = lose[k2++];
+    }
+
+    while( k1 <= n ) a[i++] = win[k1++];
+    while( k2 <= n ) a[i++] = lose[k2++];
+
+    return;
+}
+
+int main()
+{
+    scanf("%d %d %d", &n, &r, &q);
+	// 读入并初始化每个选手的分数、id，和实力值
+	for(int i = 1; i <= 2 * n; i++)
+    {
+        scanf("%d", &a[i].s);
+        a[i].id = i;
+    }
+    for(int i = 1; i <= 2 * n; i++)  scanf("%d", &a[i].w);
+
+    sort(a + 1, a + 1 + 2 * n, cmp);  // 按题意，每轮比赛前，先进行一次排序。故第一次比赛前的排序不能遗漏
+
+	while(r--)  // 模拟 r 轮
+    {
+        int k1 = 1, k2 = 1;
+        for(int i = 1; i <= 2 * n; i += 2)  // 每一次比赛两组人
+        {
+            if(a[i].w > a[i+1].w) // 题目已保证实力值无相等的可能性
+            {
+                a[i].s++;
+                win[k1++] = a[i];    // 赢的人放在赢的桶里。赢的人每人都 +1 分，所以赢的桶内无需再排序
+                lose[k2++] = a[i+1]; // 输的人放在输的桶里,输的人每人都 +0 分，所以输的桶内也无需再排序
+            }
+            else
+            {
+                a[i+1].s++;
+                win[k1++] = a[i+1];  // 赢的人放在赢的桶里。赢的人每人都 +1 分，所以赢的桶内无需再排序
+                lose[k2++] = a[i];   // 输的人放在输的桶里,输的人每人都 +0 分，所以输的桶内也无需再排序
+            }
+        }
+
+		tsort(); // 一轮结束后重新排序
+	}
+
+	printf("%d", a[q].id);
+
+	return 0;
+}
+```
+
+    </Tabs.Tab>
+
+ </Tabs>

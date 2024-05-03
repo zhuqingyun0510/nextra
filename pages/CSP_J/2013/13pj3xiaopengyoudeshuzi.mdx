@@ -1,0 +1,68 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1963  
+AcWing：https://www.acwing.com/problem/content/457/  
+洛谷：https://www.luogu.com.cn/problem/P1982  
+
+#### 核心思想：
+1、本题一看就是使用**动态规划**。这里包含两次动态规划，第一次是计算特征值，第二次是计算分数。
+
+2、计算特征值：特征值等于 **排在他前面（包括他本人）** 的小朋友中 **连续** 若干个（最少有一个）小朋友手上的 **数字之和的最大值**。这里就相当于 **先求出每个 i 号小朋友对应的最大连续子段和 s[i]；然后在s[1]~s[i]中找最大值，作为第 i 个小朋友的特征值 t[i]**。此处可参见最大连续子段和的模板（https://www.luogu.com.cn/problem/P1115）。
+```cpp
+    s[i] = max(s[i-1] + a[i], a[i]);     // s[i] 截至到 i 的连续子段和的最大值
+    t[i] = (s[i] > t[i-1]) ? s[i] : t[i-1]; // t[i] 第i个小孩的特征值。取 s[1]~s[i]中的最大值
+```
+
+3、计算分数：第1个小孩的分数即为他自己的特征值；第2个小孩的分数为第一个小孩的特征值加上第一个小孩的分数。 其余的状态转移方程为 
+```cpp
+f[i] = max(f[i-1], f[i-1] + t[i-1]) % p;
+```
+其中 $f[i-1]$ 表示第1个 ～ 第 i-2 个小孩的分数的最大值；$f[i-1]+t[i-1]$ 表示第 i-1 个小孩的分数 
+
+注意：
+1、从样例中可发现，如果 $f[1]＞0$ ，则后续都是单调不下降，最后一个肯定是最大；
+2、如果 $f[1] < 0$，则后续的f[n]可能会比f[1]小，可能会比f[1]大（如下示例）。所以需要额外判断
+
+<Image src="/image/13pj31.png" alt="样例图" width={450} height={164} />
+
+```cpp filename="解法、（动态规划）：" showLineNumbers {21,22,30}
+#include <bits/stdc++.h>
+#define MAXN 1000005
+#define ll long long
+
+using namespace std;
+
+ll n, p;
+ll a[MAXN], ma = -1e10, ans = -1e10; // a[i]第i个小孩手里的数字
+ll s[MAXN], t[MAXN], f[MAXN]; // s[i] 截至到i的连续子段和的最大值；t[i] 第i个小孩的特征值；f[i]第i个小孩的分值
+
+int main()
+{
+    cin >> n >> p;
+    t[0] = ma;
+    s[0] = 0;
+    
+    // 第一段动态规划，先求出每个i对应的最大连续子段和s[i]；然后在s[1]~s[i]中找最大值赋给t[i]
+    for(ll i = 1; i <= n; i++)
+    {
+        cin >> a[i];
+        s[i] = max(s[i-1] + a[i], a[i]);        // s[i] 截至到i的连续子段和的最大值
+        t[i] = (s[i] > t[i-1]) ? s[i] : t[i-1]; // t[i] 第i个小孩的特征值。取 s[1]~s[i]中的最大值
+    }
+
+    // 第二段动态规划，其中f[1]和f[2]要先行计算
+    f[1] = t[1] % p;          // 第1个小孩的分数即为他自己的特征值。
+    f[2] = (t[1] + f[1]) % p;   // 第2个小孩的分数为第一个小孩的特征值加上第一个小孩的分数
+    for(int i = 3; i <= n; i++)
+    {   // f[i-1]为第1个～第i-2个小孩的分数的最大值；f[i-1]+t[i-1]为第i-1个小孩的分数
+        f[i] = max(f[i-1], f[i-1] + t[i-1]) % p;
+    }
+    if(f[1] > 0) ans = f[n];   // 从样例中可发现，如果f[1]＞0，则后续都是单调不下降，最后一个肯定是最大
+    else ans = max(f[1], f[n]);// 如果f[1]<0，则后续的f[n]可能会比f[1]小，所以需要额外判断
+
+    cout << ans << endl;
+    return 0;
+}
+```

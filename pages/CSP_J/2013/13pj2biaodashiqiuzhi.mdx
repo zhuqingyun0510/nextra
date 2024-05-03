@@ -1,0 +1,63 @@
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1962  
+AcWing：https://www.acwing.com/problem/content/456/  
+洛谷：https://www.luogu.com.cn/problem/P1981  
+
+#### 核心思想：（模拟）
+本题的符号只有 $+$ 和 $*$，没有括号，没有表达式的合法性判断，所以逻辑上不复杂。只需要 **将读入的乘法先行计算，最后统一做加法** 即可。故可以采用 **模拟** 的方法，**一边读入数据，一边处理**。
+
+<Steps>
+##### 第一步  
+读入一个符号和一个数字。( 举例：15+22*36+49，则读入的分别是 +22 或者 *36 或者 +49 )   
+##### 第二步
+如果该数字前面是乘号，则把上一个数字取出来先乘，然后仅把积入栈（如上式中的22*36=792，将792入数字栈）；如果该数字前面是➕，直接将数字入栈  
+##### 第三步
+由于乘法在入栈前已经处理完，故栈内的数字依次相加即可
+</Steps>
+
+#### 题解代码：
+```cpp showLineNumbers {13,18-24} filename="解法、（模拟）："
+#include <bits/stdc++.h>
+#define ll long long
+#define MOD 10000
+using namespace std;
+
+stack <ll> num_stk; // 存储数字
+
+int main()
+{
+	ll x, y, ans = 0;
+	char s;
+	cin >> x; // 由于本题的输入中没有空格，所以可以直接cin取数。第一个数先单独取，后续每次读入“符号和数字”，
+	num_stk.push( x % MOD );//压入栈中.由于数可能很大，每个数在运算前后都取模
+
+	// 一边读入数据，以便先把乘法都计算了
+	while(cin >> s >> y)
+	{
+		if(s == '*')  // 如果当前读入的时乘号，则把数字栈顶的元素取出，与y相乘。然后积入栈
+		{
+		    ll tmp = num_stk.top();
+			num_stk.pop();
+			num_stk.push( (tmp * (y % MOD)) % MOD );
+		}
+		else  num_stk.push( y % MOD ); // 如果读入的是加号，则直接数值入数字栈
+	}
+    // 当上一个while循环结束后，此时仅剩加法。数字栈的数字依次相加即可
+    while(!num_stk.empty())
+	{
+		ans = (ans + num_stk.top()) % MOD;
+        num_stk.pop();
+	}
+
+	cout << ans << endl;
+	return 0;
+}
+```
+
+备注：
+本题也可以采用
+1. 先把中缀表达式转成后缀表达式
+2. 再用后缀表达式求值的方法
+模板代码可参见(https://blog.csdn.net/lq1990717/article/details/123860584)
