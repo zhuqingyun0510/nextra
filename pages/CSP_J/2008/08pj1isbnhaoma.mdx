@@ -1,0 +1,46 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> [一本通： 1942：【08NOIP普及组】ISBN号码](http://ybt.ssoier.cn:8088/problem_show.php?pid=1942)  
+[AcWing：433. ISBN号码](https://www.acwing.com/problem/content/description/435/)  
+[洛谷：P1055 [NOIP2008 普及组] ISBN 号码](https://www.luogu.com.cn/problem/P1055)  
+
+#### 核心思想：
+简单**模拟**即可。  
+1、一次性读入字符串，将每一个字符单独转换为数字处理  
+2、如果读入的是数字，则 **(s[j] - '0') 转换为数字**。并 sum += 数字 * i++  
+3、如果读入的是 '-'，则跳过找下一个数字  
+4、sum 完成后，对11取模作为识别码（sbm）  
+5、如果 sbm 为个位数字，则将其转为字符，并比较ISBN的最后一位 s[12]；如果 sbm 为10，则sbm为'X'  
+6、最后比较输出即可  
+
+#### 题解代码：
+```cpp showLineNumbers filename="模拟" {12,13,17,21}
+#include <bits/stdc++.h>
+
+using namespace std;
+string s;
+int sum = 0;
+
+int main()
+{
+    cin >> s;
+    for(int i = 1, j = 0; i <= 9; i++, j++)
+    {
+        while(s[j] == '-')  j++;
+        sum += (s[j] - '0') * i;
+    }
+    int sbm = sum % 11;
+    char c = 'X';
+    if(sbm != 10)  c = sbm + '0';
+    if(c == s[12])  cout << "Right" << endl;
+    else
+    {
+        s[12] = c;
+        cout << s << endl;
+    }
+
+    return 0;
+}
+```

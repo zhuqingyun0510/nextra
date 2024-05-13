@@ -1,0 +1,133 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1950  
+AcWing：https://www.acwing.com/problem/content/444/  
+洛谷：https://www.luogu.com.cn/problem/P1190  
+
+<Tabs items={['解法一、朴素模拟', '解法二、模拟排队']}>
+  <Tabs.Tab> 
+  #### 解法一、朴素模拟
+##### 核心思想：
+朴素模拟：  
+1、先给每个b[i]水龙头分配一个人a[i]，b[i]表示水龙头的剩余时间。同时**标记该水龙头为 used 使用中**  
+2、**每一次 while** 循环表示1秒，即接水**时间+1**。同时每个水龙头的**剩余时间 b[i]--**。  
+3、如果某个水龙头的剩余时间 **b[i] 减到了0**，则把**队列中的 a[j] 分配给b[i]**。同时 j++ 指向下一个人  
+4、如果某个水龙头的剩余时间 b[i] 减到了0，但是队伍中已经没有排队等待接水的人了（j>n），则设置**used[i] = 0 表示关闭 b[i] 水龙头**，同时关闭的数量 **cnt++**  
+5、当关闭水龙头的数量 **cnt==n** 时，说明**所有水龙头都已经关闭**，此时的接水时间 t 就是最终结果  
+
+##### 题解代码：
+```cpp filename="解法一、朴素模拟" showLineNumbers {23-24,28,29,31,36-43}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int M = 105, N = 10005;
+int a[N], b[M], used[M]={0};
+int n, m;
+
+/*
+朴素模拟：
+1、先给每个b[i]水龙头分配一个人a[i]，b[i]表示水龙头的剩余时间。同时标记该水龙头为 used 使用中
+2、每一次 while 循环表示1秒，即接水时间+1。同时每个b[i]--。
+3、如果b[i]减到了0，则把队列中的 a[j]分配给b[i]。同时 j++ 指向下一个人
+4、如果b[i]减到了0，但是队伍中已经没有排队等待接水的人了（j>n），则设置used[i] = 0 表示关闭 b[i] 水龙头，同时关闭的数量 cnt++
+5、当关闭水龙头的数量 cnt==n 时，说明所有水龙头都已经关闭，此时的接水时间 t 就是最终结果
+*/
+int main()
+{
+    scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++)  scanf("%d", &a[i]);
+
+    for(int i = 1; i <= m; i++)
+    {
+        b[i] = a[i];  // 初始分配水龙头
+        used[i] = 1;  // 该水龙头标记为使用中
+    }
+
+    int t = 0, cnt = 0;  // t表示总接水时间，cnt表示关闭的水龙头数量
+    int j = m + 1;  // 由于前m个水龙头都已经初始分配了，故第一个等待排队的是 m+1
+    while(cnt < m)  // 跳出条件：水龙头全部关闭
+    {
+        t++;  // 总接水时间++
+        for(int i = 1; i <= m; i++)   // 循环m个水龙头
+        {
+            if(used[i])  // 如果当前水龙头在使用中
+            {
+                b[i]--;  // 则b[i]--
+                if(b[i] == 0)  // 如果 b[i] 减到0
+                {
+                    if(j<= n)  b[i] = a[j++]; // 如果还有人在排队，则第一个排队的人接到b[i]
+                    else  // 如果没人在排队
+                    {
+                        used[i] = 0; // 则关闭该水龙头
+                        cnt++; // 关闭数量++
+                    }
+                }
+            }
+        }
+    }
+
+    printf("%d\n", t);
+    return 0;
+}
+```  
+  </Tabs.Tab> 
+
+  <Tabs.Tab> 
+#### 解法二、模拟排队
+##### 思考：  
+现实生活中如果我们去打水，肯定看**哪个队伍短就排在哪个队伍后面**。  
+本题也是一样，  
+1、看**哪个队伍的打水时间最短，就排在哪个队伍后面**，同时 **更新该队伍的打水时间**。  
+2、n个人就处理n次  
+3、n次以后，**打水时间最长的队伍就是题解**  
+
+<Image src="/image/10pj21.png" alt="样例图" width={640} height={300} />
+
+##### 题解代码：
+```cpp filename="解法二、模拟排队" showLineNumbers {22-25,27-28,31,35}
+#include <bits/stdc++.h>
+#define INF 1e9
+using namespace std;
+
+const int M = 105;
+int b[M]; // b[i]表示每个水龙头的打水时间
+int n, m, a;
+int minn, ans; // ans记录最终结果
+
+/*
+思考：现实生活中如果我们去打水，肯定看哪个队伍短就排在哪个队伍后面。
+本题也是一样，看哪个队伍的打水时间最短，就把当前排队的人接在哪个队伍后面，同时更新该队伍的打水时间。
+*/
+int main()
+{
+    scanf("%d %d", &n, &m);
+    // 读入每个人的打水时间，并将其接在当前打水时间最短的队伍后面
+    for(int i = 1;i <= n; i++)  // n个人，分配 n 次队伍，故循环 n 次
+    {
+        scanf("%d", &a);
+
+        minn = INF;
+        int k = 0;
+        for(int j = 1;j <= m;j++) // 循环m次，找出哪个队伍的打水时间最短
+            if(b[j] < minn)
+            {
+                k = j;
+                minn = b[j];
+            }
+
+        b[k] = b[k] + a; // 将当前的人接在最短的队伍后面
+    }
+
+    ans = -INF;  // 在最后的队伍中找最长的队伍，这个时间就是最长打水时间
+    for(int i = 1; i <= m; i++)  ans = max(ans, b[i]);
+
+    printf("%d", ans);
+    return 0;
+}
+```
+
+</Tabs.Tab> 
+
+</Tabs> 

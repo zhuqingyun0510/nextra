@@ -1,0 +1,47 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1952  
+AcWing：https://www.acwing.com/problem/content/description/446/  
+洛谷：https://www.luogu.com.cn/problem/P1199  
+
+#### 核心思想：
+这道题先用 **瞪眼法** 找规律（不能硬写模拟）。  
+因为电脑采用的是 **防守策略**（不会主动进攻），所以**如果我们想选每一行的最大值，一定选不到**（会 **被电脑破坏**掉）。但同样的，**每行的极大值  人选不到，电脑也选不到**）。所以，每行的 **次极大值** 就是 **胜败的关键**，因为次极大值是可以选到的。  
+所以我们只要**先拿到次极大值中最大**的，**然后依次和电脑一起把所有极大值都破坏**，人类就赢了。  
+
+由于本题的`“武将默契值均不相同”`，所以**次极大值只有一个**，所以人类一定赢。  
+由于本题`不需要输出每次的选择`，所以直接输出最大的那个次极大值即可。
+
+注意：在寻找每行的次极大值时，要先把**完整的矩阵构建**出来，因为题目输入的只有一半。  
+
+#### 题解代码：
+```cpp filename="瞪眼法找规律" showLineNumbers {15,20,21}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 505;
+int n, x, a[N][N] = {0};
+int ans = -1;
+
+int main()
+{
+    scanf("%d", &n);
+    for(int i = 1; i <= n; i++)
+        for(int j = i + 1; j <= n; j++)
+        {
+            scanf("%d", &x); // 读入数据
+            a[i][j] = a[j][i] = x; // 构建完整的矩阵，不能只用一半，因为缺前向的关系
+        }
+
+    for(int i = 1; i <= n; i++) // 找出每一行中的次极大值
+    {
+        sort(a[i] + 1, a[i] + 1 + n);
+        ans = max(ans, a[i][n-1]);  // a[i][n-1]时第i行的次极大值。所有的次极大值中最大的一个，即为能保证获胜的数值
+    }
+
+    printf("1\n%d", ans);
+    return 0;
+}
+```

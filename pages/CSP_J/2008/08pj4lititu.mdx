@@ -1,0 +1,93 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> [一本通-1977：【08NOIP普及组】立体图](http://ybt.ssoier.cn:8088/problem_show.php?pid=1977)  
+[AcWing-436. 立体图](https://www.acwing.com/problem/content/description/438/)  
+[洛谷-P1058 [NOIP2008 普及组] 立体图](https://www.luogu.com.cn/problem/P1058) 
+
+#### 核心思想：
+本题采用**模拟**方法一个一个画小方块（虽然画的是立体空间的积木，但本质还是**在二维平面上画图形**）  
+**本题的难点**在于：  
+1、如何**确定二维平面画布的大小**（画布的**高 h 对应二维平面的行**向量，画布**宽度L对应二维平面的列**向量）  
+2、如何确定每个积木的**起点坐标** （ **左下角**作为起点）  
+3、如何**处理遮挡**  
+
+
+##### 观察难点1（如下图）：
+<Image src="/image/08pj41.png" alt="样例图" width={920} height={390} />  
+答：我们发现，画布的宽度 $L = 1 + 4*n + 2*m$；  画布的高度 $h = max(h, 1 + 3 * a[i][j] + 2 * (m-i+1))$
+
+##### 观察难点2（如下图）：
+<Image src="/image/08pj42.png" alt="样例图" width={1220} height={748} />  
+答：我们发现：第 i 行第 j 列的矩形的左下角顶点位于画板的第 $h - ( m - i ) * 2$ 行，第 $1 +( j - 1 ) * 4 + ( m - i) * 2$ 列
+
+##### 观察难点3：
+由于前面的遮挡后面的，上面的遮挡下面的，右面的遮挡左面的。所以绘制积木时采用逆向顺序：**从后往前画（从第1行到第m行）,从左往右画（从第1列到第n列），从下往上画**（此时只要**行索引每次-3**即可，如下图所示）
+<Image src="/image/08pj43.png" alt="样例图" width={588} height={312} />  
+
+#### 题解代码：
+```cpp filename="模拟" showLineNumbers {21,27,32,36,43-49}
+#include <iostream>
+using namespace std;
+
+int m, n, l, h;
+int a[101][101];  // a[i][j] 第i行第j列的区域上方叠放积木的数量
+char prt[1001][1001]; // 屏幕画布所对应的二维数组
+char box[6][8]=
+{
+    "..+---+",
+    "./   /|",
+    "+---+ |",
+    "|   | +",
+    "|   |/.",
+    "+---+..",
+};
+
+void draw(int x, int y)
+{
+    for(int i = 0; i < 6; i++)
+        for(int j = 0; j < 7; j++)                             // 传进来的行索引需反向；列索引方向一致，不需要变化
+            if(box[i][j] != '.')  prt[x-5+i][y+j] = box[i][j]; // 传进来的x是积木左下角的行索引（第6行），x-1是第5行，x-2是第4行... x-5是第1行
+}
+
+int main()
+{
+    scanf("%d %d", &m, &n);
+    l = 1 + 4*n + 2*m;   // 整体图像在“画板”水平区域的宽度
+    for(int i = 1; i <= m; i++)  // 从后往前读入 m 行
+        for(int j = 1; j <= n; j++) // 从左往右读入 n 列
+        {
+            scanf("%d", &a[i][j]);
+            h = max(h, 1 + 3 * a[i][j] + 2 * (m-i+1)); // 整体图像在“画板”垂直区域的高度
+        }
+
+    for(int i = 1; i <= h; i++)  // 高度对应数组的行，宽度对应数组的列
+        for(int j = 1; j <= l; j++)  prt[i][j] = '.'; // 全初始化为背景的‘.’
+
+    for(int i = 1; i <= m; i++)
+    {
+        for(int j = 1; j <= n; j++)
+        {
+            int x, y;  // 因为共有m行n列个区域。(x,y) 表示第i行第j列区域的左下角在“画板”上对应的行索引和列索引
+            x = h - 2 * (m-i);
+            y = 4 * (j-1) + 2 * (m-i) + 1;
+            while(a[i][j]--) // 叠加了几块积木，就画几次
+            {
+                draw(x, y);  // 叠加的积木，每高一层，左下角顶点坐标在画布上的行索引少3
+                x -= 3;
+            }
+        }
+    }
+
+    for(int i = 1; i <= h; i++)
+    {
+        for(int j = 1;j <= l; j++)
+            printf("%c", prt[i][j]);
+
+        printf("\n");
+    }
+
+    return 0;
+}
+```

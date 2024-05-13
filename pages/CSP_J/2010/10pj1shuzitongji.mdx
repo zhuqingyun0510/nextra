@@ -1,0 +1,33 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ： 
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1949  
+Acwing：https://www.acwing.com/problem/content/443/  
+
+#### 相似题目：[2013NOIP普及组真题 1. 计数问题](https://www.noip.chat/CSP_J/2013/13pj1jishuwenti)
+
+本题与之一样，由于数据范围不大，直接**暴力**即可
+
+```cpp filename="暴力" showLineNumbers {12,14,15}
+#include <bits/stdc++.h>
+using namespace std;
+
+int l, r, ans = 0;
+
+int main()
+{
+    scanf("%d %d", &l, &r);
+    for(int i = l; i <= r; i++)
+    {
+        int k = i;
+        while(k)
+        {
+            if( k%10 == 2 ) ans++;
+            k /= 10;
+        }
+    }
+    printf("%d", ans);
+    return 0;
+}
+```

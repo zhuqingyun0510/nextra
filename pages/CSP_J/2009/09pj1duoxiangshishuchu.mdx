@@ -1,0 +1,62 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1945  
+AcWing：https://www.acwing.com/problem/content/description/439/  
+洛谷：https://www.luogu.com.cn/problem/P1067  
+
+#### 核心思想：
+逐一读入，逐一处理  
+step1、先输出符号    
+> 如果a小于0，则不管在哪个位置，都要输出负号；  
+如果a大于0，则除了最高次幂，其他都输出+号  
+
+step2、再输出abs不等于1的数  
+step3、再输出abs为1，且a为常数项的数  
+step4、最后处理x的t次幂  
+> 如果t大于1，则输出 $x^t$ 
+如果t等于1，则输出 x  
+本题中没有 t 小于1的情况  
+
+#### 题解代码：
+```cpp showLineNumbers {16-17,19-20,22-23,34}
+#include <bits/stdc++.h>
+
+using namespace std;
+int n, a;
+
+/*
+step1、先输出符号
+step2、再输出abs不等于1的数
+step3、再输出abs为1，且a为常数项的数
+step4、最后处理x次幂
+*/
+void prt(int a, int t)
+{
+    if(a == 0) return;
+    // step1
+    if(a < 0)  printf("-");  // 如果a小于0，则不管在哪个位置，都要输出负号
+    else if(t != n)  printf("+"); // 如果a大于0，则除了最高次幂，其他都输出+号
+
+    if(abs(a) != 1) printf("%d", abs(a));  // step2:如果是 1，则不需要输出，反之需要输出
+    if(abs(a) == 1 && t == 0)  printf("1");// step3:如果 1是常数项，则输出
+
+    if(t > 1)  printf("x^%d", t);  // step4: 处理x次幂
+    else if(t == 1)  printf("x");
+
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    int t = n; 
+    do{
+        scanf("%d", &a);  // 读入后依次处理
+        prt(a, t);
+    }while(t--);
+
+    return 0;
+}
+```

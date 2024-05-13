@@ -1,0 +1,62 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> [一本通：1943：【08NOIP普及组】排座椅](http://ybt.ssoier.cn:8088/problem_show.php?pid=1943)  
+[AcWing：434. 排座椅](https://www.acwing.com/problem/content/436/)  
+[洛谷：P1056 [NOIP2008 普及组] 排座椅](https://www.luogu.com.cn/problem/P1056)  
+
+#### 核心思想：
+1、假设第 i 行和第 i+1 行之间有 2 组交头接耳的学生对，则 row[i] = 2，表示第i行 和第i+1行有2组;  
+2、假设第 i 列和第 i+1 列之间有 5 组交头接耳的学生对，则 col[i] = 5，表示第i列 和第i+1列有5组;  
+3、所以，在读入每一行交头接耳的数据时（共 d 对数据），如果是在同一行，则更新row[i]；如果是在同一列，则更新col[i]  
+4、对row[i]进行降序排序，挑选最大的k个进行输出（输出时按照id的升序进行输出）；同理，对col[i]进行降序排序，挑选最大的L个进行输出（输出时按照id的升序进行输出）  
+
+#### 题解代码：
+```cpp showLineNumbers {28，29,32,33,35,36,40,41}
+#include <bits/stdc++.h>
+#define id second
+#define cnt first
+using namespace std;
+
+const int N = 1005;
+
+typedef pair<int, int> PII;
+PII row[N], col[N];
+int m, n, k, l, d;
+int x, y, p, o;
+int prt[N];
+
+bool cmp(PII a, PII b)
+{
+    return a.cnt > b.cnt;  // 按照该行（该列）交头接耳的数量进行排序（从大到小）
+}
+
+int main()
+{
+    scanf("%d %d %d %d %d", &m, &n, &k, &l, &d);
+    for(int i = 1; i <= m; i++) row[i].id = i;
+    for(int i = 1; i <= n; i++) col[i].id = i;
+
+    for(int i = 1; i <= d; i++)
+    {
+        scanf("%d %d %d %d", &x, &y, &p, &o);
+        if(x == p)  y > o ? col[o].cnt++: col[y].cnt++;  // 如果第3列和第2列有交头接耳，则第2列的cnt++
+        else if(y == o)  x > p ? row[p].cnt++: row[x].cnt++; // 如果第3行和第2行有交头接耳，则第2行的cnt++
+    }
+
+    sort(row + 1, row + 1 + m, cmp); // 对行的cnt进行降序排序
+    sort(col + 1, col + 1 + n, cmp); // 对列的cnt进行降序排序
+
+    for(int i = 1; i <= k; i++)  prt[i] = row[i].id;  // 把行cnt最大的k个id挑出来
+    sort(prt + 1, prt + 1 + k);  // 对这k个id进行升序排序（输出要求）
+    for(int i = 1; i <= k; i++)  printf("%d ", prt[i]);
+    printf("\n");
+
+    for(int i = 1; i <= l; i++)  prt[i] = col[i].id;  // 把列cnt最大的l个id挑出来
+    sort(prt + 1, prt + 1 + l);  // 对这 L 个id进行升序排序（输出要求）
+    for(int i = 1; i <= l; i++)  printf("%d ", prt[i]);
+
+    return 0;
+}
+```

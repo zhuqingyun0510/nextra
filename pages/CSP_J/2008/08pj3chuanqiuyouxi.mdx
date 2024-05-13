@@ -1,0 +1,93 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> [一本通：1944【08NOIP普及组】传球游戏](http://ybt.ssoier.cn:8088/problem_show.php?pid=1944)  
+[AcWing：435.传球游戏](https://www.acwing.com/problem/content/437/)  
+[洛谷：P1057 [NOIP2008 普及组] 传球游戏](https://www.luogu.com.cn/problem/P1057)  
+
+#### 核心思想：
+
+<Tabs items={['解法一、动态规划DP', '解法二、深搜（回溯+记忆化搜索）']}>
+  <Tabs.Tab> 
+
+##### 解法一、这类题可采用动态规划的思想。
+令 dp[i][j] 表示(从1号开始)经过 j 次传球后，球在i号手里的方案总数。由于**球可以从前后两个方向传来**，所以 $dp[i][j] = dp[i-1][j-1]+dp[i+1][j-1]$。即：第 i 个点 j 次的方案总数等于前后两个点 j-1 次的方案数总和。
+
+```cpp filename="解法一、动态规划DP" showLineNumbers
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 35;
+int n, m, dp[N][N]; // dp[i][j]表示(从1号开始)经过 j 次传球后，球在i号手里的方案总数 dp[i][j] = dp[i-1][j-1]+dp[i+1][j-1]
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    memset(dp, 0, sizeof(dp));
+    dp[1][0] = 1; // 从1号开始，经过0次传球后，球在1号手里的方案总数。只有1种，就是不传
+
+    for(int j = 1; j <= m; j++)
+        for(int i = 1; i <= n; i++)
+        {
+            int pre, nxt;
+            // 处理前后两个点的坐标边界
+            i == 1 ? pre = n : pre = i-1;
+            i == n ? nxt = 1 : nxt = i+1;
+
+            dp[i][j] = dp[pre][j-1] + dp[nxt][j-1];  // 核心语句第i个点j次的方案总数等于前后两个点j-1次的方案数总和
+        }
+
+    printf("%d\n", dp[1][m]);
+    return 0;
+}
+```
+
+  </Tabs.Tab>
+
+  <Tabs.Tab>
+##### 解法二、深搜（回溯+记忆化搜索）
+这道题也可以采用深搜dfs来完成。但是一定要加上**记忆化搜索**，否则会Time limit。
+```cpp filename="解法二、深搜（回溯+记忆化搜索）" showLineNumbers
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 35;
+int n, m, ans, f[N][N]; // f[i][j]表示(从1号开始)经过 j 次传球后，球在i号手里的方案总数
+
+// （回溯型）深搜（+记忆化搜索）
+int dfs(int i, int j)  // i表示当前在i#手里，j表示经过了j次传球
+{
+    if(f[i][j] != -1)  return f[i][j];  // （记忆化搜索）如果已经计算过，则直接返回
+
+    if(j == m)
+    {
+        if(i == 1)  return 1;   // 处理边界：当传了m次时，如果正好在1号，则返回1，表示这是一个有效的方案数
+        else  return 0;         // 否则，返回0
+    }
+
+    int pre, nxt;
+    // 处理前后两个点的坐标边界
+    i == 1 ? pre = n : pre = i-1;
+    i == n ? nxt = 1 : nxt = i+1;
+
+    f[i][j] = dfs(pre, j+1) + dfs(nxt, j+1); // 回溯。f[i][j]为向两边继续传球能成功成功的方案数总和
+
+    return f[i][j];
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    memset(f, -1, sizeof(f));   
+    
+    printf("%d\n", dfs(1, 0)); // dfs的初始状态为：球在1号手里，此时0次传球
+    return 0;
+}
+```
+
+  </Tabs.Tab>
+
+
+
+</Tabs>

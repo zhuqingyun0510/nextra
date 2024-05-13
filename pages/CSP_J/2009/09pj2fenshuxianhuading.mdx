@@ -1,0 +1,50 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：http://ybt.ssoier.cn:8088/problem_show.php?pid=1946  
+AcWing：https://www.acwing.com/problem/content/description/440/  
+洛谷：https://www.luogu.com.cn/problem/P1068  
+
+#### 核心思想：
+1、本题主要是考虑**第k个人的分数有可能会出现同分**，则实际输出会多于k个人。
+
+#### 题解代码：
+```cpp showLineNumbers {22,28}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 5005;
+
+struct Node{
+    int id, s;  // id 报名号。s 分数
+};
+Node node[N];
+
+int n, m, k;
+
+int cmp(Node a, Node b)   // 按成绩降序排序；成绩相同者，按学号升序排序
+{
+    if(a.s == b.s) return a.id < b.id;
+    else  return a.s > b.s;
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    k = (int)(m * 1.5);  // 向下取整
+    for(int i = 1; i <= n; i++)
+        scanf("%d%d", &node[i].id, &node[i].s);
+
+    sort(node + 1, node + n + 1, cmp); // 由于数量级不大，快速排序
+
+    while(node[k].s == node[k+1].s)  k++; // 如果第k位后续有同分，则更新k
+
+    printf("%d %d\n", node[k].s, k);
+
+    for(int i = 1; i <= k; i++)
+        printf("%d %d\n", node[i].id, node[i].s);
+
+    return 0;
+}
+```
