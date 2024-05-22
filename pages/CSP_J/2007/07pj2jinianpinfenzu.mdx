@@ -1,0 +1,47 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1939：【07NOIP普及组】纪念品分组](http://ybt.ssoier.cn:8088/problem_show.php?pid=1939)  
+AcWing：[430. 纪念品分组](http://ybt.ssoier.cn:8088/problem_show.php?pid=1939)  
+洛谷：[P1094 [NOIP2007 普及组] 纪念品分组](https://www.luogu.com.cn/problem/P1094)  
+
+#### 核心思想：
+核心语句是`“每组最多只能包括两件纪念品”`，所以本题不需要使用背包，可以直接贪心。
+
+
+<Steps>
+##### 第一步  
+升序排序  
+##### 第二步
+每一次从两端取数：大的一定放在组里，小的是否放需要分析总和是否超过w  
+##### 第三步
+两端端点向中间移动，直到两端点相遇
+</Steps>
+
+#### 题解代码：
+```cpp showLineNumbers {13,17,18}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 30005;
+
+int w, n, p[N], ans;
+
+int main()
+{
+    scanf("%d %d", &w, &n);
+    for(int i = 1; i <= n; i++)  scanf("%d", &p[i]);
+
+    sort(p + 1, p + 1 + n);  // 默认升序排序
+
+    for(int i = n, j = 1; i >= j; i--)   // 每次末尾最大的数都取，i每次都前移
+    {
+        ans++;
+        if(p[i] + p[j] <= w)  j++;  // 如果队首最小的数加进去不超过 w ,则队首加进去，指针后移
+    }
+
+    printf("%d", ans);
+    return 0;
+}
+```

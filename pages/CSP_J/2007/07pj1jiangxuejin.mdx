@@ -1,0 +1,50 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1938：【07NOIP普及组】奖学金](http://ybt.ssoier.cn:8088/problem_show.php?pid=1938)  
+AcWing：[429. 奖学金](https://www.acwing.com/file_system/file/content/whole/index/content/3980/)  
+洛谷：[P1093 [NOIP2007 普及组] 奖学金](https://www.luogu.com.cn/problem/P1093)
+
+#### 核心思想：
+1、用一个结构体存储学生的信息  
+2、单独写一个快排使用的 cmp 函数
+
+#### 题解代码：
+```cpp showLineNumbers {16-18}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 305;
+
+struct Node
+{
+    int ch, ma, en, sum, id;  // ch语文，ma数学，en英语，sum总分，id学号
+};
+Node s[N];
+
+int n;
+
+bool cmp(Node a, Node b)  // 结构体的比较函数
+{
+    if(a.sum != b.sum)  return a.sum > b.sum;  // 先按照总分高低排序
+    else if(a.ch != b.ch)  return a.ch > b.ch; // 如果总分相同，则按照语文分的高低排序
+    else return a.id < b.id; // 如果总分和语文都相同，则学号小的排在前面
+}
+
+int main()
+{
+    scanf("%d", &n);
+    for(int i = 1; i <= n; i++)
+    {
+        scanf("%d %d %d", &s[i].ch, &s[i].ma, &s[i].en);
+        s[i].id = i;
+        s[i].sum = s[i].ch + s[i].ma + s[i].en;
+    }
+
+    sort(s + 1, s + 1 + n, cmp);
+
+    for(int i = 1; i <= 5; i++)  printf("%d %d\n", s[i].id, s[i].sum);
+    return 0;
+}
+```

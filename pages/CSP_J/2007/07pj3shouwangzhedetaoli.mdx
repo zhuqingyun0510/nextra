@@ -1,0 +1,94 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1940：【07NOIP普及组】守望者的逃离](http://ybt.ssoier.cn:8088/problem_show.php?pid=1940)  
+AcWing：[431. 守望者的逃离](https://www.acwing.com/problem/content/description/433/)  
+洛谷：[P1095 [NOIP2007 普及组] 守望者的逃离](https://www.luogu.com.cn/problem/P1095)  
+
+#### 核心思想：
+1、闪烁耗费1秒，可以增加距离60米，但是恢复10点魔法值还需要2.5秒，所以闪烁的平均速度为 60m/3.5s = 17.14m/s  > 跑步的速度17m/s。所以在时间充足的情况下，闪烁比跑步距离更远。  
+2、但是如果最后剩余的时间不足以支持一次闪烁，则跑步能增加距离。  
+3、所以，先按照最快的闪烁，计算每一秒钟能出现的位置（闪烁的秒，位置+60；不闪烁的秒，位置不变）；最后用跑步来修正每一次等待过程中的距离（等待的秒，可以用跑步+17来更新距离）  
+
+
+<Tabs items={['解法一、动态规划', '解法二、模拟']}>
+  <Tabs.Tab> 
+  ```cpp showLineNumbers filename="动态规划" {15,16,20,21,26}
+  #include <bits/stdc++.h>
+using namespace std;
+int m, s, t, dp[300005];
+
+// 恢复10点需要2.5秒，闪烁需要1秒，所以闪烁的平均速度为 60/3.5 = 17.14m/s  > 跑步的速度17m/s
+// 所以在时间充足的情况下，闪烁比跑步距离更远。
+// 先按照最快的闪烁，计算每一秒钟可能出现的位置；最后用跑步来修正每一次等待过程中的距离
+int main()
+{
+    scanf("%d %d %d", &m, &s, &t);
+    for(int i = 1; i <= t; i++)
+    {
+        if(m >= 10)
+        {
+            dp[i] = dp[i-1]+60;   // 如果魔法值够，则跳跃60米
+            m -= 10;
+        }
+        else  // 如果魔法值不够，则原地等待，恢复魔法值
+        {
+            dp[i] = dp[i-1];
+            m += 4;
+        }
+    }
+    for(int i = 1; i <= t; i++)
+    {
+        dp[i] = max(dp[i], dp[i-1] + 17);   // 对于等待的秒，用跑步来修正每一次等待过程中的距离
+        if(dp[i] >= s)
+        {
+            printf("Yes\n%d", i);
+            return 0;
+        }
+    }
+    printf("No\n%d", dp[t]);  // 如果跑不完，则输出最后t时刻的距离即可
+    return 0;
+}
+```
+  </Tabs.Tab> 
+
+  <Tabs.Tab> 
+     本质和动态规划一样，因为在魔法充足的那一秒，一定是闪烁远；其他时刻一定是跑步的距离更远  
+我们假设有两个人，a只负责闪烁来更新魔法充足时刻的最远距离，b负责在上一秒的最远距离 + 跑步来更新其他秒的最远距离.
+    ```cpp showLineNumbers filename="模拟" {15,16,19,22}
+    #include <bits/stdc++.h>
+using namespace std;
+int m, s, t, a = 0, b = 0;  // a记录纯闪烁的最远距离，b记录闪烁+跑步的最远距离
+
+// 模拟。因为在魔法充足的那一秒，一定是闪烁远；其他时刻一定是跑步的距离更远
+// 我们假设有两个人，a只负责闪烁来更新魔法充足时刻的最远距离，b负责在上一秒的最远距离 + 跑步来更新其他秒的最远距离，
+int main()
+{
+    scanf("%d %d %d", &m, &s, &t);
+    for(int i = 1; i <= t; i++)
+    {
+        // a只负责闪烁，来更新魔法充足时刻的最远距离
+        if(m >= 10)  // 如果魔法值够
+        {
+            a += 60;  // 则跳跃60米
+            m -= 10;  // 魔法值减少 10
+        }
+        else  // 如果魔法值不够
+            m += 4;  // 魔法值恢复 4
+        
+        // b负责在上一秒的最远距离 + 跑步来更新每一秒的最远距离
+        b = max(a, b + 17); // 更新最大的距离
+        if(b >= s)
+        {
+            printf("Yes\n%d", i);
+            return 0;
+        }
+    }
+
+    printf("No\n%d", b);
+    return 0;
+}
+```
+  </Tabs.Tab> 
+</Tabs>

@@ -18,6 +18,10 @@
         "title": "Dev C++",
         "href": "https://www.bloodshed.net/"
       },
+      "Code::Blocks": {
+        "title": "Code::Blocks",
+        "href": "https://www.codeblocks.org/downloads/binaries/"
+      },
       "NOI Linux2.0": {
         "title": "NOI Linux2.0",
         "href": "https://www.noi.cn/gynoi/jsgz/2021-07-16/732450.shtml"
