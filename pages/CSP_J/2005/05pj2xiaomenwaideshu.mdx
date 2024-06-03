@@ -1,0 +1,101 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1931：[05NOIP普及组] 校门外的树](http://ybt.ssoier.cn:8088/problem_show.php?pid=1931)  
+AcWing：[422. 校门外的树](https://www.acwing.com/problem/content/424/)  
+洛谷：[P1047 [NOIP2005 普及组] 校门外的树](https://www.luogu.com.cn/problem/P1047)  
+
+#### 核心思想：
+1、由于数据量不大，所以本题可以用**暴力**直接枚举。时间复杂度为：$O(LM)=O(10^6)$  
+
+<Tabs items={['解法一、暴力', '解法二、区间合并']}>
+  <Tabs.Tab> 
+```cpp showLineNumbers filename="解法一、暴力"
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 10005;
+
+int l, m, ans;
+bool a[N];
+
+// 暴力 O(LM)=O(10^6)
+int main()
+{
+    scanf("%d %d", &l, &m);
+    for(int i = 0; i < m; i++)
+    {
+        int st, ed;
+        scanf("%d %d", &st, &ed);
+        if(st > ed)  swap(st, ed);  // 防止输入坐标倒序
+        for(int j = st; j <= ed; j++)  a[j] = true;  // 区间范围内的不做检查，直接标为true
+    }
+
+    for(int i = 0; i <= l; i++)  // 检查 [0, L]的每一个点，为false的即剩下的树
+        if(!a[i])  ans++;
+
+    printf("%d\n", ans);
+    return 0;
+}
+```
+  </Tabs.Tab> 
+
+<Tabs.Tab> 
+解法二、合并区间（正解）  
+1、如果这道题的数据量超过$10^8$，则暴力会超时。此时应该使用区间合并的方法。**区间合并** 才是此种类型题目的 **正解**。  
+2、先把 **区间** 按照 **左端点** 进行升序排序。此时任意两个相邻的区间有三种可能性，分别为下图的：**分离、重叠、包含**  
+> 2.1 分离：上一个区间不需要合并，故可直接统计上一个区间的长度    
+2.2 重叠：合并后的区间的 right 为 p[i].second  
+2.3 包含：不需要更新  
+
+<Image src="/image/05pj21.png" alt="样例图" width={560} height={232} /> 
+
+```cpp showLineNumbers filename="解法二、区间合并" {5,7,19,22,24-38}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 10005;
+typedef pair<int, int> PII;   // first存储区间左端点，second存储区间右端点
+
+PII p[N];
+int l, m, ans;
+
+// 区间合并 O(LlogL)
+int main()
+{
+    scanf("%d %d", &l, &m);
+    for(int i = 0; i < m; i++)
+    {
+        int st, ed;
+        scanf("%d %d", &st, &ed);
+        if(st > ed)  swap(st, ed);  // 防止输入坐标倒序
+        p[i] = {st, ed};
+    }
+
+    sort(p, p + m);  // 根据first即左端点进行排序
+
+    int left = 0, right = -1;  // l表示上一区间的左端点，r表示上一区间的右端点。初始化为0，-1是为了保证第一次区间 r - l + 1 = 0
+    for(int i = 0; i < m; i++)  //
+    {
+        if( right < p[i].first ) // 如果上一区间的右端点和下一区间的左端点没有接上
+        {
+            ans += right - left + 1; // 统计上一（合并后）区间内的数量
+            left = p[i].first;
+            right = p[i].second;
+        }
+        else  // 如果上一区间的右端点和下一区间的左端点接上了，就合并区间的右端点
+        {
+            right = max(right, p[i].second);
+        }
+    }
+    ans += right - left + 1;  // 最后一个区间的数量还没算
+
+    printf("%d\n", l + 1 - ans);
+    return 0;
+}
+```
+
+</Tabs.Tab> 
+
+</Tabs>

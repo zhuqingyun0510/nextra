@@ -1,0 +1,66 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1930：[05NOIP普及组]陶陶摘苹果](http://ybt.ssoier.cn:8088/problem_show.php?pid=1930)  
+AcWing：[421. 陶陶摘苹果](https://www.acwing.com/problem/content/423/)  
+洛谷：[P1046 [NOIP2005 普及组] 陶陶摘苹果](https://www.luogu.com.cn/problem/P1046)  
+
+核心思想：
+1、这是一道打卡题，直接枚举+判断即可
+
+<Tabs items={['解法一、枚举', '解法二、sort + upper_bound']}>
+  <Tabs.Tab> 
+```cpp showLineNumbers filename="枚举" 
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 15;
+
+int a[N], h, ans;  // h为陶陶的高度
+
+int main()
+{
+    for(int i = 0; i < 10; i++)  scanf("%d", &a[i]);  // 读入每个苹果的高度
+    scanf("%d", &h);  // 读入陶陶的高度
+    h += 30;  // 陶陶的高度加上凳子
+
+    for(int i = 0; i <10; i++)
+        if(a[i] <= h)  ans++;  // 逐一判断
+
+    printf("%d\n", ans);
+    return 0;
+}
+
+```
+  </Tabs.Tab> 
+
+  <Tabs.Tab> 
+本题数据量小，所以可以枚举。如果数据量大，可以考虑用 **lower_bound()** 或者 **upper_bound()** 来计算第一个大于（或大于等于）的元素的位置。此时元素的位置，就是前面所有元素的数量。
+> lower_bound 返回一个迭代器，指向范围内第一个大于等于 value 的元素的位置  
+upper_bound 返回一个迭代器，指向范围内第一个大于 value 的元素的位置  
+
+```cpp showLineNumbers filename="sort + upper_bound" {14,15}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 15;
+
+int a[N], h, ans;  // h为陶陶的高度
+
+int main()
+{
+    for(int i = 0; i < 10; i++)  scanf("%d", &a[i]);  // 读入每个苹果的高度
+    scanf("%d", &h);  // 读入陶陶的高度
+    h += 30;  // 陶陶的高度加上凳子
+
+    sort(a, a + 10);  // 升序排序
+    int k = upper_bound(a, a + 10, h) - a; // 返回第一个大于h的元素地址。如果算出来第一个大于h的元素序号是3
+                                            // 说明前面编号为0,1,2的＜h，正好是3个
+    printf("%d\n", k);
+    return 0;
+}
+```
+
+  </Tabs.Tab> 
+</Tabs>

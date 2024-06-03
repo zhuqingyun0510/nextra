@@ -1,0 +1,78 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1934：【06NOIP普及组】明明的随机数](http://ybt.ssoier.cn:8088/problem_show.php?pid=1934)  
+AcWing：[425. 明明的随机数](https://www.acwing.com/problem/content/description/427/)  
+洛谷：[P1059 [NOIP2006 普及组] 明明的随机数](https://www.luogu.com.cn/problem/P1059)  
+
+#### 核心思想：
+本题的要求是  
+1、去重  
+2、排序  
+以上两个要求正好可以使用 set 来实现。set 自带了去重和排序的功能。输出时使用 iterator 即可。  
+
+<Tabs items={['解法一、利用 set', '解法二、sort + unique']}>
+  <Tabs.Tab> 
+```cpp showLineNumbers filename="利用 set" {13,16,18}
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, x;
+set<int> s;
+
+int main()
+{
+    scanf("%d", &n);
+    while(n--)
+    {
+        scanf("%d", &x);
+        s.insert(x);  // 插入后自动排序，自动去重
+    }
+
+    set<int>::iterator it; // 定义指向set的迭代器
+    printf("%d\n", s.size());
+    for(it = s.begin(); it != s.end(); it++)  printf("%d ", *it);  // 输出set中每一个数
+
+    return 0;
+}
+```
+  </Tabs.Tab> 
+
+  <Tabs.Tab> 
+
+我们可以利用**sort + unique**来完成。  
+<Callout type="default"> 
+unique是**STL**函数，包含于 \<algorithm> 头文件中。功能是将数组中**相邻的重复元素去除**。然而其 **本质** 是 **将重复的元素移动到数组的末尾**，最后再 将**迭代器指向第一个重复元素的下标**。  
+</Callout>
+所以，如果利用unique实现去重的功能，需要注意  
+> 1、**先排序**。因为unique只对相邻的重复元素有效；   
+2、unique**并未删除**重复元素，只是将重复元素 **移动到** 数组的 **末尾**；  
+3、unique返回的是**指向末尾第一个**重复元素的迭代器  
+4、基于第2点和第3点，如果需要知道数组中不重复元素的个数，需要用unique返回的迭代器减去数组的起始地址，即   
+ $len = unique(a, a+n) - a;$
+
+```cpp showLineNumbers filename="sort + unique" {12,13}
+#include <bits/stdc++.h>
+using namespace std;
+
+int n;
+
+int main()
+{
+    scanf("%d", &n);
+    int a[n];
+    for(int i = 0; i < n; i++)  scanf("%d", &a[i]);  // 读入
+
+    sort(a, a+n);  // 先排序
+    int len = unique(a, a+n) - a;  // 去重，并计算不重复元素的个数
+
+    printf("%d\n", len); // 输出长度
+    for(int i = 0; i < len; i++)  printf("%d ", a[i]);  // 输出不重复的元素
+
+    return 0;
+}
+```
+  </Tabs.Tab> 
+
+</Tabs> 

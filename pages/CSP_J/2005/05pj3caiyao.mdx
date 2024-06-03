@@ -1,0 +1,50 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通: [1932：[05NOIP普及组] 采药](http://ybt.ssoier.cn:8088/problem_show.php?pid=1932)  
+acwing：[423. 采药](https://www.acwing.com/problem/content/425/)  
+洛谷：[P1048 [NOIP2005 普及组] 采药](https://www.luogu.com.cn/problem/P1048)  
+
+#### 核心思想:
+1 这道题与 2006 年普及组第2题《开心的金明》一样，考察的都是01背包。  
+2 直接套用01背包的一阶模板即可
+> a、限定时间看成**背包总容量m**  
+b、每件物品的采药时间 **v 看成占用背包的体积**  
+c、每件物品的价格**w作为该物品的价值**  
+则本题可套用标准的01背包问题模板：  
+    ```cpp filename="01背包模板：m为物品总容量，n为可供选择的物品数量"
+    for(int i = 0; i < n; i++)  // n个物品供选择
+    {
+        int v, w;
+        scanf("%d %d", &v, &w);  // 每个物品的体积v, 价值w
+        for(int j = m; j >= v; j--)  f[j] = max(f[j], f[j - v] + w);   // 从总容量m->当前物品读入的体积v, 逆序计算f[j]
+    }
+```
+
+#### 题解代码：
+```cpp showLineNumbers {13-20} filename="01背包模板"
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1010;
+
+int n, m;
+int f[N];
+
+int main()
+{
+    scanf("%d%d", &m, &n);
+    for (int i = 0; i < n; i ++ )
+    {
+        int v, w;
+        scanf("%d%d", &v, &w);
+        for (int j = m; j >= v; j -- ) f[j] = max(f[j], f[j - v] + w);
+    }
+    
+    printf("%d\n", f[m]);
+    
+    return 0;
+}
+```

@@ -1,0 +1,43 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1935：【06NOIP普及组】开心的金明](http://ybt.ssoier.cn:8088/problem_show.php?pid=1935)  
+AcWing： [426. 开心的金明](https://www.acwing.com/problem/content/428/)   
+洛谷：[P1060 [NOIP2006 普及组] 开心的金明](https://www.luogu.com.cn/problem/P1060)  
+
+#### 本题只要把  
+1、限定金额看成背包总容量  
+2、每件物品的价格 v 看成占用背包的体积  
+3、每件物品的价格v乘以权重w作为该物品的价值  
+则本题可套用标准的01背包问题模板：  
+$f[j] = max(f[j], f[j - v] + w * v);$
+
+关于背包问题可参见：https://oi.wiki/dp/knapsack/
+
+#### 题解代码：
+```cpp showLineNumbers {17}
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 30010;
+
+int n, m;
+int f[N];
+
+int main()
+{
+    scanf("%d%d", &m, &n);
+    for (int i = 0; i < n; i ++ )
+    {
+        int v, w;
+        scanf("%d%d", &v, &w);
+        for (int j = m; j >= v; j -- ) f[j] = max(f[j], f[j - v] + w * v);   // 01背包模板
+    }
+    
+    printf("%d\n", f[m]);
+    
+    return 0;
+}
+```

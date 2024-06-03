@@ -1,0 +1,145 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1933：【05NOIP普及组】循环](http://ybt.ssoier.cn:8088/problem_show.php?pid=1933)    
+AcWing：[424. 循环](https://www.acwing.com/problem/content/description/426/)   
+洛谷：[P1050 [NOIP2005 普及组] 循环](https://www.luogu.com.cn/problem/P1050)  
+
+核心思想：高精度
+1、本题用到了标准的高精度乘法模板
+```cpp showLineNumbers filename="处理高精度数据接收" {5,6}
+void init(int a[]) //传入一个数组
+{
+    string s; 
+    cin >> s;  //读入字符串s 
+    a[0] = s.length();   //用a[0]计算字符串s的位数 
+    for(i = 1; i <= a[0]; i++)  a[i] = s[a[0]-i] - '0';   //将数串s转换为数组a，并倒序存储 
+}
+```
+
+```cpp showLineNumbers filename="高精度x高精度" {6-8,13}
+for (i = 1; i <= lena; i++)
+{
+    x = 0;                                     //用于存放进位
+    for (j = 1; j <= lenb; j++)                //对乘数的每一位进行处理
+    {
+        c[i+j-1] = a[i] * b[j] + x + c[i+j-1]; //当前乘积+上次乘积进位+原数
+        x = c[i+j-1] / 10;
+        c[i+j-1] %= 10;
+    }
+    c[i+lenb] = x;                           //进位
+}
+lenc = lena + lenb;
+while (c[lenc] == 0 && lenc > 1)  lenc--;    //删除前导0
+```
+2、本题要求的是末 k 位的循环节长度。需要从最低位开始判断  
+假设一个数的末尾四位数字为 1234，要求 1234 的循环节。  
+1、先判断最后一位 4 的循环节，假设找到是x，即 $(1234)^x$ 的个位保持 4 不变。  
+2、再找倒数第二位 3 的循环节。为了保证每次循环最后一位都保持 4 不变，故每一轮要以 $(1234)^x$ 为基准进行累乘。假设找到是 y，则说明  $((1234)^x)^y$的末两位保持 34 不变。  
+3、再找倒数第三位 2 的循环节。为了保证每次循环末两位保持 34 不变，故每一轮要以  $((1234)^x)^y$ 为基准进行累乘。假设找到是 z，则说明  $(((1234)^x)^y)^z$ 的末三位保持 234 不变。  
+4、再找倒数第四位 1 的循环节。为了保证每次循环末三位保持 234 不变，故每一轮要以   $(((1234)^x)^y)^z$ 为基准进行累乘。假设找到是 r，则说明  $((((1234)^x)^y)^z)^r$ 的末四位保持 1234 不变。  
+故 1234 的循环节为 $x*y*z*r$  
+3、我们将上述的  $(1234)^x$ ,  $((1234)^x)^y$ , $(((1234)^x)^y)^z$ 称为每一轮的累乘单位
+下表描述了基本判断过程:
+
+<Image src="/image/05pj41.png" alt="样例图" width={920} height={432} /> 
+
+#### 题解代码：
+```cpp showLineNumbers filename="高精度" {15-17,23,44-46,50-52,54,64,65,75-82}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 1005;  // 10^100的数字长度有1000位
+
+int k; //结果取末k位
+
+void Multiply(int a[], int b[], int r[]) //a * b = r 高精乘高精 结果只取末k位
+{
+    for(int i = 1; i <= a[0]; ++i)
+    {
+        int x = 0;  // 存放进位
+        for(int j = 1; j <= b[0]; ++j)  // 对乘数的每一位进行处理
+        {
+            r[i+j-1] = a[i]*b[j] + x + r[i+j-1]; // 当前乘积 + 上次乘积进位 + 原数
+            x = r[i+j-1] / 10;  // 如果r[i+j-1]超过10，则产生进位
+            r[i+j-1] %= 10;     // 仅保留个位
+        }
+        r[i+b[0]] += x; // 存储最后一次产生的进位
+    }
+
+    int len = a[0] + b[0];   // 初始化计算结果的位数（举例，3位数*1位数的结果最多是4位数）
+    while(r[len] == 0 && len > 1)  len--;  // 去除前导0
+
+    r[0] = min(len, k);  // 存储计算结果的长度至 r[0]。如果计算结果超过了k位，只取k位
+}
+
+// c = c*a ，用于计算累乘乘积。
+// 为高精乘高精。在调用Multiply(c, a, r)时返回的结果只取末k位
+void Multiply(int c[], int a[])
+{
+    int r[N] = {};
+    Multiply(c, a, r);  // r = a*c
+    memcpy(c, r, sizeof(r)); // r复制回c，结果只考虑 r[0]位
+}
+
+// a = a*b，用于计算幂次方的乘积。举例 (n^100)^5=n^500
+// 高精乘低精
+void Multiply(int l[], int j)
+{
+    int x = 0, i;
+    for(i = 1; i <= l[0]; ++i) // 对每一位进行处理（倒序存储,l[1]为个位）
+    {
+        l[i] = l[i] * j + x; // 每一位相乘，+低位的进位
+        x = l[i] / 10;  // 如果l[i]超过10，则产生进位
+        l[i] %= 10;     // 仅保留个位
+    }
+    while(x > 0) // 存储最后一次产生的进位
+    {
+        l[i] = x % 10;
+        x /= 10;
+        i++;
+    }
+    while(l[i] == 0 && i > 1)   i--;  // 去除前导0
+    l[0] = i;   // 保存计算结果的长度至 l[0]
+}
+
+int main()
+{
+    int n[N] = {}, a[N] = {}, b[N] = {}, c[N] = {}, l[N] = {1,1}; // n：存储原数；a：累乘单位n^t； b：存储n×n^t,n×n^2t ; c：存储每一轮的累乘结果，如 n^2t；l:循环长度 初值为1
+    string s;
+    cin >> s >> k;  // 读入字符串s和末尾k
+
+    n[0] = s.length(); // 用n[0]存储数字的长度
+    for(int i = 1; i <= n[0]; i++)  n[i] = s[ n[0] - i ] - '0'; // 将数串s转换为数组a，并倒序存储
+
+    memcpy(a, n, sizeof(n)); // 初始化累乘单位
+    for(int i = 1; i <= k; ++i) // 从个位开始，逐次计算每一位对应的循环周期。由于 n 是倒序存储，所以n[1]是个位，n[2]是十位，n[3]是百位...
+    {
+        bool isFound = false;   // 第i位的循环长度是否找到
+
+        c[0] = c[1] = 1; // 存储累乘乘积，初始化为1，c[0]存储c的位数。举例，累乘单位n^t，则c分别为1,n^t,(n^t)^2,(n^t)^3...
+        for(int j = 1; j <= 10; ++j)  // 如果累乘单位n^t经过10轮还没有出现重复，则说明不会重复了（因为0-9只有十个数字）。
+        {
+            Multiply(c, a); // 高精乘高精，计算累乘乘积
+            memset(b, 0, sizeof(b));
+            Multiply(c, n, b);//高精乘高精 b = c * n
+            if(b[i] == n[i])  //如果倒数第i位又变回为原来的倒数第i位
+            {
+                Multiply(l, j);//高精乘低精 找到第i位的循环长度为j
+                isFound = true;
+                break;
+            }
+        }
+        if(isFound == false)
+        {//如果没找到，则不存在循环长度
+            cout << -1;
+            return 0;
+        }
+        memcpy(a, c, sizeof(c));
+    }
+    for(int i = l[0]; i >= 1; i--)  cout << l[i]; // 逆序输出循环长度
+        
+    return 0;
+}
+```
