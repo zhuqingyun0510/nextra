@@ -1,0 +1,38 @@
+
+
+#### 线上OJ：
+> 一本通：[1926：【04NOIP普及组】不高兴的津津](http://ybt.ssoier.cn:8088/problem_show.php?pid=1926)    
+AcWing：[417. 不高兴的津津](https://www.acwing.com/problem/content/description/419/)  
+洛谷：[P1085 [NOIP2004 普及组] 不高兴的津津](https://www.luogu.com.cn/problem/P1085)  
+
+#### 核心思想：
+本题过于简单，模拟即可  
+
+#### 题解代码：
+```cpp showLineNumbers
+#include <bits/stdc++.h>
+using namespace std;
+
+int a, b, c, ma = -1, day;
+bool flag = false;  // 是否找到
+
+int main()
+{
+    for(int i = 1; i <= 7; i++)  // i从1开始，表示星期一
+    {
+        scanf("%d %d", &a, &b);
+        c = a + b;
+        if( (c > 8) && (c > ma) )  // c>ma表示只有比ma大，才会更新日期。即使相等也不更新
+        {
+            ma = c;
+            day = i;  // 记录最不开心的那一天
+            flag = true;
+        }
+    }
+
+    if(!flag)  printf("0\n");
+    else  printf("%d", day);
+
+    return 0;
+}
+```

@@ -1,0 +1,28 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1929：【04NOIP普及组】火星人](http://ybt.ssoier.cn:8088/problem_show.php?pid=1929)  
+AcWing：[420. 火星人](https://www.acwing.com/problem/content/description/422/)  
+洛谷：[P1088 [NOIP2004 普及组] 火星人](https://www.luogu.com.cn/problem/P1088)  
+
+#### 核心思想：
+本题的难点是阅读理解。通读后发现，题目的本质是**全排列**，可以直接调用 **next_permutation()** 进行。
+
+#### 题解代码：
+```cpp showLineNumbers filename="next_permutation()" {11}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 10005;
+int n, m, a[N];
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    for(int i = 0; i < n; i++)  scanf("%d", &a[i]);  // 读入外星人的数据
+    for(int i = 0; i < m; i++)  next_permutation(a, a + n);  // 对a执行m次 next_permutation()
+    for(int i = 0; i < n; i++)  printf("%d ", a[i]);
+    return 0;
+}
+```

@@ -1,0 +1,71 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+一本通：[1927：【04NOIP普及组】花生采摘](http://ybt.ssoier.cn:8088/problem_show.php?pid=1927)  
+AcWing：[418. 花生采摘](https://www.acwing.com/problem/content/description/420/)  
+洛谷：[P1086 [NOIP2004 普及组] 花生采摘](https://www.luogu.com.cn/problem/P1086)  
+
+#### 核心思想：
+1、本题为**贪心**即可。  
+2、因为本题严格限制了顺序，所以先把每个节点的花生数量按**降序**排序。然后逐一判断下一个花生是否需要去采摘即可  
+3、每一次采摘完，记录耗时 t 以及采集的花生总数 ans。同时考虑排序后的下一个节点，如果采摘后返回路边时间足够，则执行下一次采摘；如果采摘后来不及返回路边，则不再进行下一次采摘，本次直接返回路边即可。  
+4、注意，第一次是否需要采摘可进行特判。for 循环中从花生第二多的节点开始  
+
+#### 题解代码：
+```cpp showLineNumbers {15,31,39-48}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 405;
+
+struct Node
+{
+    int x, y;  // 第x行，第y列
+    int n;     // 的花生数量为n
+};
+Node node[N];
+
+bool cmp(Node a, Node b)
+{
+    return a.n > b. n;  // 降序排序
+}
+
+int m, n, k, cnt=0; // cnt用于记载node的数量
+
+int main()
+{
+    scanf("%d %d %d", &m, &n, &k);
+    for(int i = 1; i <= m; i++)
+        for(int j = 1; j <= n; j++)
+        {
+            node[++cnt].x = i;  // 存储行
+            node[cnt].y = j;    // 存储列
+            scanf("%d", &node[cnt].n); // 存储花生数量
+        }
+
+    sort(node + 1, node + 1 + cnt, cmp);  // 对所有的节点按照n进行降序排序
+
+    if(2 * node[1].x + 1 > k)  // 如果采集第一次就无法返回，则输出0
+    {
+        printf("0\n");
+        return 0;
+    }
+
+    int t = node[1].x + 1; // 如果第一次采集时间足够，则用t记录第一次采集已经耗费的时间，记得要把采摘的+1时间也算上
+    int ans = node[1].n;    // ans记录已经采集的花生总数
+    for(int i = 2; i <= cnt; i++)
+    {   // 如果从当前i-1到下一个i，时间不足以完成走路+采摘+回到路边，则到此结束
+        if(t + abs(node[i].x - node[i-1].x) + abs(node[i].y - node[i-1].y) + 1 + node[i].x > k)
+            break;
+        else  // 如果从当前i-1到下一个i时间够，则，采摘第i个
+        {
+            t += abs(node[i].x - node[i-1].x) + abs(node[i].y - node[i-1].y) + 1; // 更新耗费时间t
+            ans += node[i].n;  // 更新采摘数量 ans
+        }
+    }
+
+    printf("%d\n", ans);
+    return 0;
+}
+```

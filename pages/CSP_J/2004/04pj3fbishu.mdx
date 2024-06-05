@@ -1,0 +1,78 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ 地址：
+> 一本通：[1928：[04NOIP普及组] FBI树](http://ybt.ssoier.cn:8088/problem_show.php?pid=1928)  
+AcWing：[419. FBI树](https://www.acwing.com/problem/content/description/421/)  
+
+> 本题的意思是：给定一个 `01字符串` （对应一棵**完全二叉树**的最后一层叶子节点），将树的每一个节点的值用字母“F、B、I”表示。规则（如下图所示）为：  
+1、如果树的左右子树的叶子节点都是0，则根节点为B；  
+2、如果树的左右子树的叶子节点都是1，则根节点为 I；  
+3、如果树的左右子树的叶子节点有0也有1，则根节点为 F；  
+
+<Image src="/image/04pj31.png" alt="样例图" width={200} height={160} /> 
+
+核心思想：
+1、由于给出的字符串长度为 $2^N$，所以是满二叉树。可以每次 **对左右两半** 部分直接进行 **递推建树**   
+2、使用**s.substr**对字符串进行截取。substr 接收**两个参数**，`第一个参数是起始索引，第二个参数是截取长度`。如果第二个参数不传，则默认截取到末尾。  
+3、牢记输出树的模板代码。核心在于 cout \<< node[r].val  的位置。这一行放前面就是前序遍历，放后面就是后续遍历，放中间就是中续遍历  
+
+
+#### 题解代码：
+```cpp showLineNumbers {16-21,25-26,28-29} filename="递推建树"
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 2100;  // 满二叉树，节点总数为2^11 - 1 = 2047
+
+struct Node
+{
+    int lchild, rchild; // 存储左子树和右子树的节点编号
+    char val;
+};
+Node node[N];
+int n, cnt; // cnt存储节点数量
+
+int creatTree(string s)
+{
+    int id = ++cnt;  // 本节点的节点编号
+    if(s.length() == 1) // 如果已经到了叶子节点（无法再分割）
+    {
+        if(s[0] == '0')  node[id].val = 'B';   // 如果叶子为0，则节点编号为B
+        else if(s[0] == '1')   node[id].val = 'I';  // 如果叶子为1，则节点编号为I
+        return id;
+    }
+
+    // 若不是边界，则区分成左右区间，进行递归。
+    string s_l = s.substr(0, s.length()/2);  	// 左区间为从 0 开始，长度为 s.length()/2 , 实际到 s.length()/2 - 1。由于s是2^N，所以s.length()/2一定是整数，不存在向下取整
+    string s_r = s.substr(s.length()/2); // 因为左区间到 s.length()/2 - 1，所以右区间为从 s.length()/2 开始，直到末尾
+
+    node[id].lchild = creatTree(s_l);  // 根据左半段字符串，创建树，树的根节点为当前节点的左子树
+    node[id].rchild = creatTree(s_r);  // 根据右半段字符串，创建树，树的根节点为当前节点的右子树
+
+    if( node[ node[id].lchild ].val == 'B' && node[ node[id].rchild ].val == 'B' )   node[id].val = 'B';   // 如果左右子树的值都为B，则当前节点的值也为B
+    else if( node[ node[id].lchild ].val == 'I' && node[ node[id].rchild ].val == 'I' )   node[id].val = 'I'; // 如果左右子树的值都为I，则当前节点的值也为I
+    else node[id].val = 'F';   // 否则当前节点的值为F
+
+    return id;
+}
+
+void postOrder(int r)  // 后续遍历输出
+{
+    if(r == 0)  return;
+
+    postOrder( node[r].lchild );
+    postOrder( node[r].rchild );
+    cout << node[r].val;   // 关键在于这一行。这一行放前面就是前序遍历，放后面就是后续遍历，放中间就是中续遍历
+}
+
+int main()
+{
+    string s;
+    cin >> n >> s;
+    int root = creatTree(s);  // 创建树
+
+    postOrder(root);  // 后续遍历输出树
+    return 0;
+}
+```
