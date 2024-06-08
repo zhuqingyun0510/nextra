@@ -1,0 +1,121 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ 地址：
+> 一本通：[1925：【03NOIP普及组】麦森数](http://ybt.ssoier.cn:8088/problem_show.php?pid=1925)  
+Acwing：[416. 麦森数](https://www.acwing.com/problem/content/description/418/)  
+洛谷：[P1045 [NOIP2003 普及组] 麦森数](https://www.luogu.com.cn/problem/P1045)  
+
+本题和 2007NOIP普及组真题 **4. Hanoi双塔问题** 本质相同，都是求 $2^N$。Hanoi 塔的数据量还不算大，N只会取到200，所以在使用高精度时可以用字符串乘法。但本题**麦森数**的N会达到3100000，如果使用字符串乘法，复杂度会为 $3100000*500 = O(1.5*10^9)$，会超时。  
+所以本题需要使用 **快速幂** 和 **高精度x高精度**
+
+#### 核心思想：快速幂 + 高精度
+1、本题是快速幂 + 高精度*高精度的模板题  
+
+<Callout type="info">
+以下是快速幂的推导过程：  
+我们要计算 $a^b$，考虑将指数 b 用二进制表示，比如 b=13，二进制表示为1101。  
+那么 $a^{13}=a^8 * a^4 * a^1$，我们可以发现，从右往左看二进制位，如果是1，就乘以对应的幂次的 a，如果是 0，就不乘。  
+在计算过程中，我们可以从低到高逐步计算，每一步将当前 a 的平方，同时根据二进制位决定是否累乘到结果中。  
+具体来说，开始时 res = 1，然后遇到二进制位为 1 时，就将当前的 a 乘到 res 上，同时 a 不断平方。这样就巧妙地利用了二进制的特性，大大减少了计算次数。通过这样的递推和二进制分解，就实现了快速幂的高效计算。  
+</Callout>
+
+``` cpp showLineNumbers filename="快速幂的模板代码"
+while( b > 0 )
+{
+    if(b & 1)  Multiply(res, a); // first * second 的结果赋值回 first ; // 如果是1，就乘以对应幂次的a，如果是0，就不乘
+
+    Multiply(a, a);  // a不断平方
+    b >>= 1; // 判断下一位
+}
+```
+
+2、高精度 * 高精度
+```cpp showLineNumbers filename="高精度 * 高精度"
+for (i = 1; i <= lena; i++)
+{
+    x = 0;                                     //用于存放进位
+    for (j = 1; j <= lenb; j++)                //对乘数的每一位进行处理
+    {
+        c[i+j-1] = a[i] * b[j] + x + c[i+j-1]; //当前乘积+上次乘积进位+原数
+        x = c[i+j-1] / 10;
+        c[i+j-1] %= 10;
+    }
+    c[i+lenb] = x;                           //进位
+}
+lenc = lena + lenb;
+while (c[lenc] == 0 && lenc > 1)  lenc--;    //删除前导0
+```
+
+3、由于要求的结果是 $2^N-1$，因为的$2^N$ 的末尾是2,4,8,6，都足以-1。所以最终的结果就是 个位 -1 即可。  
+4、printf("%d", int(log10(2) * p) + 1);  表示计算输出的位数  
+> 如果一个数 是100，则它的位数是 $lg(100)+1 = 2 + 1 = 3$；  lg 表示以10为底  
+如果一个数 是 999，则它的位数是 $floor(lg(999)) +1 = 2 + 1 = 3$；     floor 表示向下取整  
+如果一个数 是1000，则它的位数是 $lg(1000)+1 = 3 + 1 = 4$；  
+如果一个数 是 9999；则它的位数是 $floor(lg(9999)) +1 = 3 + 1 = 4$；     floor 表示向下取整  
+如果一个数 是10000，则它的位数是 $lg(10000)+1 = 4 + 1 = 5$；  
+
+所以，如果一个数是x，则 它的位数是 $lg(x)+1$。因为本题中 $x=2^P$，故  
+ $lg(x)+1 = lg(2^P)+1 = P * lg(2)+1$  
+
+#### 题解代码：
+```cpp showLineNumbers {8-30,38,41-46} filename="快速幂 + 高精度"
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 1005;
+
+int p;
+
+void Multiply(int a[], int b[]) // 高精乘高精 a * b 的结果赋值回 a 
+{
+    int res[N] = {};
+    for(int i = 1; i <= a[0]; ++i)
+    {
+        int x = 0;  // 存放进位
+        for(int j = 1; j <= b[0]; ++j)  // 对乘数的每一位进行处理
+        {
+            res[i+j-1] = a[i]*b[j] + x + res[i+j-1]; // 当前乘积 + 上次乘积进位 + 原数
+            x = res[i+j-1] / 10;  // 如果r[i+j-1]超过10，则产生进位
+            res[i+j-1] %= 10;     // 仅保留个位
+        }
+        res[i+b[0]] += x; // 存储最后一次产生的进位
+    }
+
+    int len = a[0] + b[0];   // 初始化计算结果的位数（举例，3位数*1位数的结果最多是4位数）
+    while(res[len] == 0 && len > 1)  len--;  // 去除前导0
+
+    res[0] = min(len, 500);  // 存储计算结果的长度至 r[0]。如果计算结果超过了k位，只取k位
+
+    for(int i = 0; i <= res[0]; ++i)  //结果r赋值给a,只取需要的位数 
+        a[i] = res[i];
+}
+
+int main()
+{
+	int res[N]={1,1}; // res[0]=1表示当前res数组的长度为1；res[1]=1表示第一位是1，也是结果的初始值
+	int a[N]={1,2};  // a[0]=1表示当前a数组的长度为1；a[1]为2表示基数的第一位是2，也就是基数的初始值
+
+    scanf("%d", &p);
+    printf("%d", int(log10(2) * p) + 1);  // 输出位数
+
+    // 快速幂
+    while( p > 0 )
+    {
+        if(p & 1)  Multiply(res, a); // first * second 的结果赋值回 first ; // 如果是1，就乘以对应幂次的a，如果是0，就不乘
+
+        Multiply(a, a);  // a不断平方
+        p >>= 1; // 判断下一位
+    }
+
+    res[1]--;  // res - 1
+
+    for(int i = 500; i >= 1; i--)  // 输出
+    {
+        if( i%50 == 0 )  cout << endl;  // 每输出50个换行
+        cout << res[i];
+    }
+
+    return 0;
+}
+```
