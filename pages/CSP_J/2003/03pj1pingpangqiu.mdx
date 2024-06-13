@@ -1,0 +1,184 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ 地址：
+> 一本通：[1922：【03NOIP普及组】乒乓球](http://ybt.ssoier.cn:8088/problem_show.php?pid=1922)  
+AcWing：[413. 乒乓球](https://www.acwing.com/problem/content/description/415/)  
+洛谷：[P1042 [NOIP2003 普及组] 乒乓球](https://www.luogu.com.cn/problem/P1042)  
+
+#### 核心思想：
+字符串的读入和处理
+
+<Callout type="default">
+char ch  // ch为字符变量  
+cin >> ch  遇到空格或者回车就会停止读入，换句话说，不会读入空格和回车。  
+cin.get(ch)  能读入各种字符，包括空格，回车等。需要自己判断读入的字符种是否包含空格和回车。  
+</Callout>
+
+<Callout type="default">
+string str  
+cin >> str  遇到空格或者回车就会停止读入，所以读入的行有可能不完整。  
+getline(cin, str)  如果想要完整读入包含空格的字符串，可以使用 getline(cin, str)  
+</Callout>
+
+<Tabs items={['解法一、读入字符串', '解法二、读入字符+存储在字符数组', '解法三、读入字符+存储在字符串', '解法四、cin.get(c)']}>
+  <Tabs.Tab> 
+```cpp showLineNumbers filename="读入字符串" {14,27}
+#include <bits/stdc++.h> 
+using namespace std;
+
+void solve(string s, int n)
+{
+	int a = 0, b = 0;  // 必须初始化为0，因为有数据上来就是E
+	int len = s.length();
+	for(int i = 0; i < len; i++)
+	{
+		if(s[i] == 'E')  break;
+		else if(s[i] == 'W')  a++;
+		else if(s[i] == 'L')  b++;
+		
+		if( (a >= n || b >= n) && (abs(a - b) >= 2) )  // 隐藏条件，分差需在2分以上才能算赢
+		{
+			printf("%d:%d\n", a, b);  // 符合条件，则打印
+			a = 0;  // a 和 b 都清0
+			b = 0;
+		}		
+	}
+	printf("%d:%d\n", a, b); // 跳出循环时把剩余比分输出
+}
+
+int main()
+{
+	string s, str;
+	while(cin >> s)   str += s;  // 字符串叠加
+	
+	solve(str, 11);
+	printf("\n");
+	solve(str, 21);
+	
+	return 0;
+}
+```
+  </Tabs.Tab>
+
+    <Tabs.Tab>
+```cpp showLineNumbers filename="读入字符+存储在字符数组" {25,26}
+#include <bits/stdc++.h> 
+using namespace std;
+
+void solve(char s[], int len, int n)
+{
+	int a = 0, b = 0;
+	for(int i = 0; i < len; i++)
+	{
+		if(s[i] == 'W')  a++;    // 由于 'E' 在读入时已经剔除，所以此处只有 W 和 L  
+		else if(s[i] == 'L')  b++;
+		
+		if( (a >= n || b >= n) && (abs(a - b) >= 2) )
+		{
+			printf("%d:%d\n", a, b);
+			a = 0;
+			b = 0;
+		}		
+	}
+	printf("%d:%d\n", a, b);	
+}
+
+int main()
+{
+	int cnt = 0 ;
+	char c, s[80010];   // s数组的大小决定了通过的分数。本题只说每行不超过20个字符，没说多少行... 
+	while( (cin >> c) && (c != 'E') )  s[cnt++] = c;
+	
+	solve(s, cnt, 11);
+	printf("\n");
+	solve(s, cnt, 21);
+	
+	return 0;
+}
+```
+  </Tabs.Tab>
+
+  <Tabs.Tab>
+```cpp showLineNumbers filename="读入字符+存储在字符串" {27,28}
+#include <bits/stdc++.h> 
+using namespace std;
+
+void solve(string s, int n)
+{
+	int a = 0, b = 0;
+	int len = s.length();
+	for(int i = 0; i < len; i++)
+	{
+		if(s[i] == 'W')  a++;    // 由于 'E' 在读入时已经剔除，所以此处只有 W 和 L  
+		else if(s[i] == 'L')  b++;
+		
+		if( (a >= n || b >= n) && (abs(a - b) >= 2) )
+		{
+			printf("%d:%d\n", a, b);
+			a = 0;
+			b = 0;
+		}		
+	}
+	printf("%d:%d\n", a, b);	
+}
+
+int main()
+{
+	int cnt = 0 ;
+	char c;   // s数组的大小决定了通过的分数。本题直说每行不超过20个字符，没说多少行... 
+	string s;
+	while( (cin >> c) && (c != 'E') )  s += c;
+	
+	solve(s, 11);
+	printf("\n");
+	solve(s, 21);
+	
+	return 0;
+}
+```
+  </Tabs.Tab>
+
+  <Tabs.Tab>
+```cpp showLineNumbers filename="cin.get(c)" {29,30}
+#include <bits/stdc++.h> 
+using namespace std;
+
+void solve(string s, int n)
+{
+	int a = 0, b = 0;
+	int len = s.length();
+	for(int i = 0; i < len; i++)
+	{
+		if(s[i] == 'W')  a++;    // 由于 'E' 在读入时已经剔除，所以此处只有 W 和 L  
+		else if(s[i] == 'L')  b++;
+		
+		if( (a >= n || b >= n) && (abs(a - b) >= 2) )
+		{
+			printf("%d:%d\n", a, b);
+			a = 0;
+			b = 0;
+		}		
+	}
+	printf("%d:%d\n", a, b);	
+}
+
+int main()
+{
+	int cnt = 0 ;
+	char c;   // s数组的大小决定了通过的分数。本题直说每行不超过20个字符，没说多少行... 
+	string s;
+	//while( (cin >> c) && (c != 'E') )  s += c;
+	while( (cin.get(c)) && (c != 'E') )   
+		if(c != '\n')  s += c;
+	
+	solve(s, 11);
+	printf("\n");
+	solve(s, 21);
+	
+	return 0;
+}
+```
+  </Tabs.Tab>
+
+</Tabs>

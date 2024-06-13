@@ -1,0 +1,40 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+一本通：[1917：【01NOIP普及组】装箱问题](http://ybt.ssoier.cn:8088/problem_show.php?pid=1917)  
+AcWing：[1024. 装箱问题](https://www.acwing.com/problem/content/1026/)  
+洛谷：[P1049 [NOIP2001 普及组] 装箱问题](https://www.luogu.com.cn/problem/P1049)  
+
+#### 核心思想：
+step1、要求箱子的剩余空间为最小，即要求 **箱子内体积最大**  
+step2、本题没有提到价值w，但我们可将每个物品的体积 v 等价于每个物品的价值w。  
+step3、所以箱内物品的体积和最大，即为箱内物品的总价值最大。   
+此时直接套用**01背包模板**代码即可  
+
+#### 题解代码：
+```cpp showLineNumbers {16,17,20} filename="01背包模板"
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 20010;
+
+int m, n;
+int f[N];
+
+int main()
+{
+    scanf("%d%d", &m, &n);
+    for (int i = 0; i < n; i ++ )
+    {
+        int v;
+        scanf("%d", &v);
+        for (int j = m; j >= v; j -- ) f[j] = max(f[j], f[j - v] + v);
+    }
+    
+    printf("%d\n", m - f[m]);
+    
+    return 0;
+}
+```

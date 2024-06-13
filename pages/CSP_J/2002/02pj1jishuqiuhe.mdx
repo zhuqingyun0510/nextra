@@ -1,0 +1,32 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+一本通：[1918：【02NOIP普及组】级数求和](http://ybt.ssoier.cn:8088/problem_show.php?pid=1918)  
+AcWing：[5490. 级数求和](https://www.acwing.com/problem/content/description/5493/)  
+洛谷：[P1035 [NOIP2002 普及组] 级数求和](https://www.luogu.com.cn/problem/P1035)  
+
+#### 核心算法：暴力模拟
+> 备注：此类题，考场上也可以考虑 **打表**
+
+#### 题解代码：
+```cpp showLineNumbers {10,12,13}
+#include <bits/stdc++.h>
+using namespace std;
+
+int k, n = 0;
+double s = 0;	
+
+int main()
+{
+	scanf("%d", &k);
+	while(s <= k)
+	{
+		n++;
+		s += 1/((double)n);
+	} 
+
+	printf("%d\n", n);	
+	return 0;	
+} 
+```
