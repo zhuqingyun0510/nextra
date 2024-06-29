@@ -1,0 +1,60 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+> 一本通：[1915：【01NOIP普及组】最大公约数与最小公倍数](http://ybt.ssoier.cn:8088/problem_show.php?pid=1915)  
+AcWing：[5497. 最大公约数和最小公倍数问题](https://www.acwing.com/problem/content/description/5500/)  
+洛谷：[P1029 [NOIP2001 普及组] 最大公约数和最小公倍数问题](https://www.luogu.com.cn/problem/P1029)  
+
+#### 核心思想：
+1、牢记 gcd 和 lcm 的模板代码。
+gcd 和 lcm 的模板代码  
+<Callout type="default">
+`ll gcd(ll a, ll b) {return b ? gcd(b, a%b) : a;}`  // 求最大公约数   
+`ll lcm(ll a, ll b) {return a / gcd(a, b)*b;}`   // 求最小公倍数     
+</Callout>
+ 
+2、两个数 p 和 q 的最大公约数是x，最小公倍数是y，则有等式 $x*y=p*q$。  
+
+> 推导：  
+设 p = ax; q=bx  所以最小公倍数 y=abx。  同时，pq = ax*bx = x * abx = xy  
+
+3、本题已知x和y，求p和q。故可以对p进行穷举，只要满足xy能整除p，且p和此时对应的q满足最大公约数是x即可。
+注：由于 x 为$10^5$，y 为$10^6$。枚举的上限为 $sqrt(xy)$，即 $＜10^6$，故本题可枚举。  
+4、由于只枚举了 $1 ~ sqrt(xy)$，即只枚举了一半。所以剩下一半的 $pq$ 组合其实就是前一半 $pq$ 组合的对称。所以每次搜索出结果时，ans+2  
+举例：12 和 15 是前半段的一组；则15 和 12 是后半段的一组
+
+#### 题解代码：
+```cpp showLineNumbers filename="最大公约数和最小公倍数问题" {8-9,24-27}
+#include <bits/stdc++.h>
+#define ll long long
+using namespace std;
+
+ll x, y, p, q;
+int ans;
+
+ll gcd(ll a, ll b) {return b ? gcd(b, a%b) : a;}  // 求最大公约数 
+ll lcm(ll a, ll b) {return a / gcd(a, b)*b;}   // 求最小公倍数 
+
+// 原理：pq=xy。所以枚举p，当p为xy的因子，且p和q的最大公约数为x时，ans++。
+// 由于for循环只做一半的判断，且 pq 和 qp 属于两组，所以 ans+=2 
+int main()
+{
+	cin >> x >> y;
+	if(x == y)   // 当最大公约数和最小公倍数相等时，p=q=x=y，只有一组解 
+	{
+		cout << 1 << endl;
+		return 0;
+	}
+	
+	y *= x;  // 先求出 xy 
+	
+	ll n = sqrt(y);  // for循环的边界 
+	for(ll i = 1; i <= n; i++)
+		if( (y % i == 0) && (gcd(i, y/i)) == x )  // 如果 i 为 n 的因子，且p和q的最大公约数为x
+			ans += 2;
+	
+	cout << ans << endl;
+	return 0;
+}
+```

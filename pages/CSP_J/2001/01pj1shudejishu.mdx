@@ -1,0 +1,44 @@
+import Image from 'next/image'
+import { Bleed, Callout, Tabs, Steps} from "nextra-theme-docs"
+
+#### 线上OJ：
+一本通：[1914：【01NOIP普及组】数的计数](http://ybt.ssoier.cn:8088/problem_show.php?pid=1914)  
+AcWing：[5496. 数的计算](https://www.acwing.com/problem/content/description/5499/)  
+
+#### 核心思想：
+1、样例中给到了 $f[6] = 6$。其实这里包含了 $f[3]=2， f[2]=2,  f[1]=1$,  以及6本身。
+> 注解：按照题意，6前面的数字只能是3,2,1，或者不放（不放就是6本身）  
+当6前面放3的时候，那3有多少种可能性，就都可以叠加在这里。即 $f[6] += f[3]$  
+同理，当6前面放2的时候，2的所有可能性也都叠加在这里 $f[6] += f[2]$  
+同理，当6前面放2的时候，2的所有可能性也都叠加在这里 $f[6] += f[1]$  
+最后，加上6自己本身，所以  
+$f[6] = f[3] + f[2] + f[1] + 1$  
+
+2、综上所述，我们可以从 $f[1]$ 开始逐步计算每个 $f[i]$，直到 $f[N]$（时间复杂度是 $O(1000*1000)=O(10^6)）$  
+3、最后根据输入的 n，直接输出 $f[n]$ 即可。
+
+#### 题解代码：
+```cpp showLineNumbers filename="数的计数" {9,12-16}
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 1000;
+int n, f[N];
+
+int main()
+{
+    f[1] = 1;  // 初始化 f[1]，就只有自己
+    for (int i = 2; i <= N; i++)
+    {
+        int x = i / 2;  // 针对每一个i，找到它不能超过的一半
+        for(int j = 1; j <= x; j++)
+            f[i] += f[j];   // 累加
+        
+        f[i]++;  // 最后加上自己    
+    }    
+
+    scanf("%d", &n);    
+    printf("%d", f[n]);
+    return 0 ;
+}
+```
